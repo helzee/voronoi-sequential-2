@@ -14,14 +14,14 @@ public class Driver {
          } catch (Exception e) {
          }
       }
-      if (N <= 0 || N > 1000000) {
-         System.err.println("usage: java Driver #points");
-         System.err.println("       where 0< #points <= 1000000"); // up to 1M
-         System.exit(-1);
-      }
+      // if (N <= 0 || N > 1000000) {
+      // System.err.println("usage: java Driver #points");
+      // System.err.println(" where 0< #points <= 1000000"); // up to 1M
+      // System.exit(-1);
+      // }
 
       // generate N points
-      Random rand = new Random(4); // 10
+      Random rand = new Random(10); // 10
       Vector<Point> points = new Vector<Point>();
 
       // space should be always 1250 x 1250
@@ -38,6 +38,11 @@ public class Driver {
             }
          } while (true);
       }
+
+      map[100][100] = 1;
+      map[100][200] = 1;
+      map[200][100] = 1;
+      map[200][200] = 1;
 
       // generate points on map[x][y] == 1
       for (int x = 0; x < size; x++)

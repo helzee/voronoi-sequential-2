@@ -73,7 +73,7 @@ public class VoronoiDiagram {
          if (temp != null && line != lastBisectedLine) {
             double distTemp = temp.distance(srcPoint);
 
-            if (distTemp > 0.0 && distTemp < dist) {
+            if (distTemp < dist) {
                itx = new double[3];
                itx[0] = temp.getX();
                itx[1] = temp.getY();
@@ -354,6 +354,19 @@ public class VoronoiDiagram {
          // candidates and determine if they should be deleted.
          // cut off bisector line at intersection
          bisector.setEnd(endPoint);
+
+         // When we intersect multiple lines at the same spot. it takes multiple steps to
+         // do so. Thus, multiple bisectors of length 0 end up getting created. To fix
+         // this, we check if the end of this bisector is the same as the end of the last
+         // one. If so, we remove the last one from the stitch and use it again. (it will
+         // get put back in the stitch later)
+         if (stitch.size() > 0) {
+            Line lastBisector = stitch.get(stitch.size() - 1);
+            if (Line.coordsEqual(bisector.getEnd(), lastBisector.getEnd())) {
+               bisector = stitch.remove(stitch.size() - 1);
+            }
+         }
+
          if (cutFromLeft) {
 
             trim(l, bisector, endPoint, 2, leftRemovedLines);
@@ -454,6 +467,16 @@ public class VoronoiDiagram {
 
       l.cutOffLines(direction, bisector, endPoint.getX(), removedLines);
 
+      if (l.isHorizontal()) {
+         // horizontal lines may not be oriented the correct way if they were just
+         // instantiated so gotta check that
+         // all horizontal lines start out oriented from right to left.
+         // So, if we are cutting off the right side we should reorient from left to
+         // right
+         if (direction == RIGHT && l.unbounded()) {
+            l.horizontalTowardsRight();
+         }
+      }
       // bisector is always traveling from src to end points. use this to determine
       // the side to trim
       // the right of the bisector should always be anywhere 180 degrees clockwise
@@ -474,7 +497,7 @@ public class VoronoiDiagram {
             l.setEnd(endPoint);
          }
 
-      } else if (direction == 2) { // trim right side
+      } else if (direction == RIGHT) { // trim right side
          // negative angle means that the endpoint of the line is CCW of the bisector.
          // since we reverse the bisector for this calcuation, CCW is on the right
 

@@ -34,6 +34,11 @@ public class Line extends LineSegment {
       if (itx == null) {
          return null;
       }
+      // if this line is bound at this intersection point it means its already been
+      // intersected
+      if ((coordsEqual(itx, p0) && p0Bound) || (coordsEqual(itx, p1) && p1Bound)) {
+         return null;
+      }
 
       if (withinBounds(itx) && line.withinBounds(itx)) {
          return itx;
@@ -43,8 +48,42 @@ public class Line extends LineSegment {
 
    }
 
+   public static boolean coordsEqual(Coordinate a, Coordinate b) {
+      if (Math.abs(a.getX() - b.getX()) < 1 && Math.abs(a.getY() - b.getY()) < 1) {
+         return true;
+      }
+      return false;
+   }
+
+   /**
+    * Tests whether the segment is horizontal.
+    *
+    * @return <code>true</code> if the segment is horizontal
+    */
+   @Override
+   public boolean isHorizontal() {
+      return Math.abs(p0.y - p1.y) < 1;
+   }
+
+   // this is used for HORIZONTAL lines ONLY
+   public void horizontalTowardsRight() {
+      if (p0.getX() > p1.getX()) {
+         swapCoordinates();
+      }
+   }
+
+   public void swapCoordinates() {
+      Coordinate temp = p0;
+      p0 = p1;
+      p1 = temp;
+   }
+
    public boolean fullyBounded() {
       return p0Bound && p1Bound;
+   }
+
+   public boolean unbounded() {
+      return !p0Bound && !p1Bound;
    }
 
    /**
