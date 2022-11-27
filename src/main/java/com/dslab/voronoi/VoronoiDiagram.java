@@ -486,6 +486,7 @@ public class VoronoiDiagram {
 
          // check if any point on the candidate line is to the left/right of the stitch
          // line
+         // TODO: isrightOf() and isLeftOf() doesnt always work
          if (direction == RIGHT && candidate.isRightOf(stitch)) {
             candidate.removeSelf();
             seenLines.add(candidate);

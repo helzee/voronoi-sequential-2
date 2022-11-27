@@ -267,11 +267,27 @@ public class Line extends LineSegment {
    }
 
    public boolean isRightOf(Line other) {
-      return other.orientationIndex(this) != 1;
+
+      return other.isCoordToRight(p1.getY() > p0.getY() ? p1 : p0);
    }
 
    public boolean isLeftOf(Line other) {
-      return other.orientationIndex(this) == 1;
+      return other.isCoordToLeft(p1.getY() > p0.getY() ? p1 : p0);
+   }
+
+   public boolean isCoordToRight(Coordinate p) {
+      return getDirOfCoord(p) < 0.00001;
+
+   }
+
+   public boolean isCoordToLeft(Coordinate p) {
+      return getDirOfCoord(p) > -0.00001;
+   }
+
+   public double getDirOfCoord(Coordinate p) {
+      LineSegment line = new LineSegment(p, new Coordinate(100, p.getY()));
+      Coordinate intersect = line.lineIntersection(this);
+      return intersect.getX() - p.getX();
    }
 
    public boolean inYBounds(double y) {
