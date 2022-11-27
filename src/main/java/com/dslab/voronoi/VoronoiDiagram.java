@@ -289,7 +289,15 @@ public class VoronoiDiagram {
                   double[] itx1 = findLeftRightMostIntersection(p0, bisector, RIGHT);
                   double[] itx2 = findLeftRightMostIntersection(p1, bisector, RIGHT);
 
-                  if (itx1 == null) {
+                  if (itx1 == null && itx2 == null) { // RARE CASE when all points exist on same line
+                     System.err.println("No intersections FOUND before exiting top bridge.\n"
+                           + " Either all the lines are parallel or this is an error!");
+                     stitch.add(bisector);
+
+                     p0.insertLine(bisector);
+                     p1.insertLine(bisector);
+                     break;
+                  } else if (itx1 == null) {
                      l = p1.getLines().get((int) itx2[2]);
                      endPoint = new Coordinate(itx2[0], itx2[1]);
                   } else if (itx2 == null) {
@@ -307,8 +315,15 @@ public class VoronoiDiagram {
                } else {
                   double[] itx1 = findLeftRightMostIntersection(p0, bisector, LEFT);
                   double[] itx2 = findLeftRightMostIntersection(p1, bisector, LEFT);
+                  if (itx1 == null && itx2 == null) { // RARE CASE when all points exist on same line
+                     System.err.println("No intersections FOUND before exiting top bridge.\n"
+                           + " Either all the lines are parallel or this is an error!");
+                     p0.insertLine(bisector);
+                     p1.insertLine(bisector);
+                     stitch.add(bisector);
 
-                  if (itx1 == null) {
+                     break;
+                  } else if (itx1 == null) {
                      l = p1.getLines().get((int) itx2[2]);
                      endPoint = new Coordinate(itx2[0], itx2[1]);
                   } else if (itx2 == null) {
@@ -330,7 +345,15 @@ public class VoronoiDiagram {
                double[] itx1 = findLowestIntersection(p0, bisector);
                double[] itx2 = findLowestIntersection(p1, bisector);
 
-               if (itx1 == null) {
+               if (itx1 == null && itx2 == null) { // RARE CASE when all points exist on same line
+                  System.err.println("No intersections FOUND before exiting top bridge.\n"
+                        + " Either all the lines are parallel or this is an error!");
+                  p0.insertLine(bisector);
+                  p1.insertLine(bisector);
+                  stitch.add(bisector);
+
+                  break;
+               } else if (itx1 == null) {
                   l = p1.getLines().get((int) itx2[2]);
                   endPoint = new Coordinate(itx2[0], itx2[1]);
                } else if (itx2 == null) {

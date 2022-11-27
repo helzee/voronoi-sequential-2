@@ -19,6 +19,10 @@ public class Line extends LineSegment {
    // points that own this line (different from coords)
    private Point pA, pB;
 
+   public Line(Coordinate a, Coordinate b) {
+      super(a, b);
+   }
+
    public Line(double x1, double y1, double x2, double y2) {
       super(x1, y1, x2, y2);
 
@@ -70,6 +74,20 @@ public class Line extends LineSegment {
       if (p0.getX() > p1.getX()) {
          swapCoordinates();
       }
+   }
+
+   public boolean containsPoint(Point p) {
+      return containsCoordinate(p.getCoordinate());
+   }
+
+   public boolean containsCoordinate(Coordinate p) {
+      double lineLength = p0.distance(p1);
+      double seg1Length = p0.distance(p);
+      double seg2Length = p1.distance(p);
+      if (Math.abs(seg1Length + seg2Length - lineLength) < 1) {
+         return true;
+      }
+      return false;
    }
 
    public void swapCoordinates() {

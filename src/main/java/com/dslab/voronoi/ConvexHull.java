@@ -1,13 +1,12 @@
 package com.dslab.voronoi;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Stack;
 import java.util.Vector;
-
-import javax.sound.sampled.Line;
 
 import org.locationtech.jts.geom.LineSegment;
 
@@ -181,8 +180,10 @@ public class ConvexHull {
    // closer to 90 degrees from x axis is better
    private static void organizeBridges(Stack<Point> leftBridge, Stack<Point> rightBridge) {
 
-      // special case for when 1 bridge is size 1 and other is size 2
-      if (leftBridge.size() == 1 && rightBridge.size() == 2) {
+      if (allPointsOnLine(leftBridge, rightBridge)) {
+         bridgeCaseParallel(leftBridge, rightBridge);
+      } else if (leftBridge.size() == 1 && rightBridge.size() == 2) {
+         // special case for when 1 bridge is size 1 and other is size 2
          bridgeCaseOfThree(leftBridge, rightBridge);
       } else if (leftBridge.size() == 2 && rightBridge.size() == 1) {
          bridgeCaseOfThree(rightBridge, leftBridge);
@@ -190,6 +191,45 @@ public class ConvexHull {
          bridgeCaseOfFour(leftBridge, rightBridge);
 
       }
+   }
+
+   // find the closest points from each bridge. these are the only points we will
+   // need for the merge so discard rest
+   private static void bridgeCaseParallel(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+
+      Point closestLeftPoint = leftBridge.peek();
+      Point closestRightPoint = rightBridge.peek();
+      for (Point l : leftBridge) {
+         for (Point r : rightBridge) {
+            if (closestLeftPoint.distance(closestRightPoint) > l.distance(r)) {
+               closestLeftPoint = l;
+               closestRightPoint = r;
+            }
+         }
+      }
+      if (leftBridge.peek() == closestLeftPoint && leftBridge.size() == 2) {
+         Collections.swap(leftBridge, 0, 1);
+      }
+      if (rightBridge.peek() == closestRightPoint && rightBridge.size() == 2) {
+         Collections.swap(rightBridge, 0, 1);
+      }
+
+   }
+
+   private static boolean allPointsOnLine(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+
+      Line line = new Line(leftBridge.peek().getCoordinate(), rightBridge.peek().getCoordinate());
+      for (Point p : leftBridge) {
+         if (!line.containsPoint(p)) {
+            return false;
+         }
+      }
+      for (Point p : rightBridge) {
+         if (!line.containsPoint(p)) {
+            return false;
+         }
+      }
+      return true;
    }
 
    private static void bridgeCaseOfFour(Stack<Point> leftBridge, Stack<Point> rightBridge) {

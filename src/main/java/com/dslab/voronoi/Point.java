@@ -30,6 +30,10 @@ public class Point {
       lines.remove(line);
    }
 
+   public double distance(Point p) {
+      return p.getCoordinate().distance(coord);
+   }
+
    public Line popLine() {
       if (lines.size() > 0)
          return lines.remove(0);
