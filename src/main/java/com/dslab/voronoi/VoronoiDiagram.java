@@ -96,15 +96,15 @@ public class VoronoiDiagram {
 
       double perpendicular_slope = -1.0 * ((double) p2.getX() - p1.getX()) / ((double) p2.getY() - p1.getY());
 
-      if (Double.isInfinite(perpendicular_slope)) { // line is horizontal
-         return new Line(midPoint.getX(), 0, midPoint.getX(), size_y, p1, p2);
+      if (Double.isInfinite(perpendicular_slope)) { // line is vertical
+         return new Line(midPoint.getX(), -1 * size_y, midPoint.getX(), size_y, p1, p2);
 
       }
       if (perpendicular_slope == 0) {
          if (p2.above(p1)) { // right above left.. the line is traveling to left
-            return new Line(size_x, midPoint.getY(), 0, midPoint.getY(), p1, p2);
+            return new Line(size_x, midPoint.getY(), -1 * size_x, midPoint.getY(), p1, p2);
          } else {
-            return new Line(0, midPoint.getY(), size_x, midPoint.getY(), p1, p2);
+            return new Line(-1 * size_x, midPoint.getY(), size_x, midPoint.getY(), p1, p2);
          }
       }
 
@@ -112,8 +112,8 @@ public class VoronoiDiagram {
 
       // generate a bisector line
       // compute x1, y1
-      double x1 = 0;
-      double y1 = intersect;
+      double x1 = -1 * size_x;
+      double y1 = perpendicular_slope * x1 + intersect;
       // // compute x2, y2
       double x2 = size_x;
       double y2 = perpendicular_slope * x2 + intersect;

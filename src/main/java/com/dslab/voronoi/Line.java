@@ -53,7 +53,7 @@ public class Line extends LineSegment {
    }
 
    public static boolean coordsEqual(Coordinate a, Coordinate b) {
-      if (Math.abs(a.getX() - b.getX()) < 0.1 && Math.abs(a.getY() - b.getY()) < 0.1) {
+      if (Math.abs(a.getX() - b.getX()) < 0.01 && Math.abs(a.getY() - b.getY()) < 0.01) {
          return true;
       }
       return false;
@@ -283,7 +283,8 @@ public class Line extends LineSegment {
       if (!p1Bound && p1.getY() == yUpper || !p0Bound && p0.getY() == yUpper) {
          yUpper = Double.POSITIVE_INFINITY;
       }
-      return yLower <= y && yUpper >= y;
+      // return yLower <= y && yUpper >= y;
+      return y - yLower > -0.0001 && y - yUpper < 0.0001;
    }
 
 }
