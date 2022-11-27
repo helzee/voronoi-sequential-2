@@ -488,8 +488,10 @@ public class VoronoiDiagram {
          // line
          if (direction == RIGHT && candidate.isRightOf(stitch)) {
             candidate.removeSelf();
+            seenLines.add(candidate);
          } else if (direction == LEFT && candidate.isLeftOf(stitch)) { // left
             candidate.removeSelf();
+            seenLines.add(candidate);
          }
 
       }
