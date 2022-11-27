@@ -84,7 +84,7 @@ public class Line extends LineSegment {
       double lineLength = p0.distance(p1);
       double seg1Length = p0.distance(p);
       double seg2Length = p1.distance(p);
-      if (Math.abs(seg1Length + seg2Length - lineLength) < 1) {
+      if (Math.abs(seg1Length + seg2Length - lineLength) < 0.0000001) {
          return true;
       }
       return false;

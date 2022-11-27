@@ -39,12 +39,12 @@ public class Driver {
          } while (true);
       }
 
-      map[100][100] = 1;
-      map[100][200] = 1;
-      map[200][100] = 1;
-      map[200][200] = 1;
-      map[100][600] = 1;
-      map[200][700] = 1;
+      // map[100][100] = 1;
+      // map[100][200] = 1;
+      // map[200][100] = 1;
+      // map[200][200] = 1;
+      // map[100][600] = 1;
+      // map[200][700] = 1;
 
       // generate points on map[x][y] == 1
       for (int x = 0; x < size; x++)

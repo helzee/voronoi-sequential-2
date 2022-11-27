@@ -264,6 +264,16 @@ public class VoronoiDiagram {
             double[] its1 = findItx(p0, bisector, srcPoint, lastBisectedLine);
             double[] its2 = findItx(p1, bisector, srcPoint, lastBisectedLine);
 
+            if (its1 == null && its2 == null) { // RARE CASE when all points exist on same line
+               System.err.println("No intersections FOUND before exiting top bridge.\n"
+                     + " Either all the lines are parallel or this is an error!");
+               stitch.add(bisector);
+
+               p0.insertLine(bisector);
+               p1.insertLine(bisector);
+               break;
+            }
+
             // 4. find which of the two intersects with the bisector line is closer to the
             // source point
             double dist1 = (its1 != null) ? srcPoint.distance(new Coordinate(its1[0], its1[1])) : Double.MAX_VALUE;
@@ -386,6 +396,7 @@ public class VoronoiDiagram {
          if (stitch.size() > 0) {
             Line lastBisector = stitch.get(stitch.size() - 1);
             if (Line.coordsEqual(bisector.getEnd(), lastBisector.getEnd())) {
+               bisector.removeSelf();
                bisector = stitch.remove(stitch.size() - 1);
             }
          }
