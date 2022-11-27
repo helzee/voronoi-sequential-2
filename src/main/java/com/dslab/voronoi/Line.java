@@ -53,7 +53,7 @@ public class Line extends LineSegment {
    }
 
    public static boolean coordsEqual(Coordinate a, Coordinate b) {
-      if (Math.abs(a.getX() - b.getX()) < 1 && Math.abs(a.getY() - b.getY()) < 1) {
+      if (Math.abs(a.getX() - b.getX()) < 0.1 && Math.abs(a.getY() - b.getY()) < 0.1) {
          return true;
       }
       return false;
@@ -66,7 +66,7 @@ public class Line extends LineSegment {
     */
    @Override
    public boolean isHorizontal() {
-      return Math.abs(p0.y - p1.y) < 1;
+      return Math.abs(p0.y - p1.y) < 0.0001;
    }
 
    // this is used for HORIZONTAL lines ONLY
@@ -126,7 +126,7 @@ public class Line extends LineSegment {
       double distToP1 = a.distance(p1);
 
       // if boundlenght = (distP0 + distP1) within 1 unit. It will never be negative
-      if ((distToP0 + distToP1) - boundLength < 1) {
+      if ((distToP0 + distToP1) - boundLength < 0.01) {
          // within both bounds
          return true;
       } else if (distToP0 < distToP1) {
