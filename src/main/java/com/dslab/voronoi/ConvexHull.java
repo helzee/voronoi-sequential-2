@@ -7,6 +7,10 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.Vector;
 
+import javax.sound.sampled.Line;
+
+import org.locationtech.jts.geom.LineSegment;
+
 /**
  * This Convex Hull class is specific to the voronoi algorithm.
  * It can only be constructed from 1 or 2 points. Any more points need to be
@@ -22,6 +26,10 @@ public class ConvexHull {
 
    public Vector<Point> getPoints() {
       return points;
+   }
+
+   public int size() {
+      return points.size();
    }
 
    public ConvexHull(Point p) {
@@ -169,40 +177,46 @@ public class ConvexHull {
    }
 
    // we want the bottommost entrance to the convex hull to be at position 0
+   // can't use height to find this. must use angle. whichever bridge has an angle
+   // closer to 90 degrees from x axis is better
    private static void organizeBridges(Stack<Point> leftBridge, Stack<Point> rightBridge) {
-      Point botLeft = leftBridge.get(0);
-      Point botRight = rightBridge.get(0);
-      if (leftBridge.size() > 1) {
-         if (leftBridge.get(0).getY() < leftBridge.get(1).getY()) {
-            botLeft = leftBridge.get(0);
-         } else {
-            botLeft = leftBridge.get(1);
-         }
-      }
-
-      if (rightBridge.size() > 1) {
-         if (rightBridge.get(0).getY() < rightBridge.get(1).getY()) {
-            botRight = rightBridge.get(0);
-         } else {
-            botRight = rightBridge.get(1);
-         }
-      }
-
-      if (botLeft.getY() <= botRight.getY() && botLeft != leftBridge.get(0)) {
-         swap(leftBridge);
-         swap(rightBridge);
-
-      } else if (botRight != rightBridge.get(0)) {
-         swap(leftBridge);
-         swap(rightBridge);
-      }
 
       // special case for when 1 bridge is size 1 and other is size 2
       if (leftBridge.size() == 1 && rightBridge.size() == 2) {
          bridgeCaseOfThree(leftBridge, rightBridge);
       } else if (leftBridge.size() == 2 && rightBridge.size() == 1) {
          bridgeCaseOfThree(rightBridge, leftBridge);
+      } else { // 4 points, 2 bridges
+         bridgeCaseOfFour(leftBridge, rightBridge);
+
       }
+   }
+
+   private static void bridgeCaseOfFour(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+      Point leftBridgeA1 = leftBridge.pop();
+      Point leftBridgeB1 = leftBridge.pop();
+      Point rightBridgeA2 = rightBridge.pop();
+      Point rightBridgeB2 = rightBridge.pop();
+      LineSegment bridgeA = new LineSegment(leftBridgeA1.getCoordinate(), rightBridgeA2.getCoordinate());
+      LineSegment bridgeB = new LineSegment(leftBridgeB1.getCoordinate(), rightBridgeB2.getCoordinate());
+
+      // I oriented each bridge so that they start from left and end at right
+      // this means that from the perspective of each bridge, the rightmost bridge of
+      // the two will always be the lower one
+      int orientationOfB = bridgeA.orientationIndex(bridgeB); // returns 1 if B is left of A
+      if (orientationOfB == 1) { // bridge A is rightmost (bottom)
+         leftBridge.add(leftBridgeA1);
+         leftBridge.add(leftBridgeB1);
+         rightBridge.add(rightBridgeA2);
+         rightBridge.add(rightBridgeB2);
+      } else {
+         leftBridge.add(leftBridgeB1);
+         leftBridge.add(leftBridgeA1);
+         rightBridge.add(rightBridgeB2);
+         rightBridge.add(rightBridgeA2);
+
+      }
+
    }
 
    // in this special case, we want to find which of the two points from the larger

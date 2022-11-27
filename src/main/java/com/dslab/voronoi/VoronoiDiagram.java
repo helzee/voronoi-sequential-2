@@ -69,7 +69,7 @@ public class VoronoiDiagram {
       int i = 0;
       for (Line line : p0.getLines()) {
 
-         Coordinate temp = bisector.intersects(line);
+         Coordinate temp = line.intersects(bisector);
          if (temp != null && line != lastBisectedLine) {
             double distTemp = temp.distance(srcPoint);
 
@@ -90,7 +90,7 @@ public class VoronoiDiagram {
    }
 
    // p1 is left, p2 is right ALWAYS
-   private Line bisectorLine(int size_x, int size_y, Point p1, Point p2) {
+   private static Line bisectorLine(int size_x, int size_y, Point p1, Point p2) {
 
       Coordinate midPoint = p1.midPoint(p2);
 
@@ -101,8 +101,10 @@ public class VoronoiDiagram {
 
       }
       if (perpendicular_slope == 0) {
-         if (p1.above(p2)) { // left above right.. orient line from right to left and vice versa
+         if (p2.above(p1)) { // right above left.. the line is traveling to left
             return new Line(size_x, midPoint.getY(), 0, midPoint.getY(), p1, p2);
+         } else {
+            return new Line(0, midPoint.getY(), size_x, midPoint.getY(), p1, p2);
          }
       }
 
@@ -131,7 +133,7 @@ public class VoronoiDiagram {
       double[] res = null;
       for (int i = 0; i < p.getLines().size(); i++) {
          Line line = p.getLines().get(i);
-         Coordinate itx = bisector.intersects(line);
+         Coordinate itx = line.intersects(bisector);
          if (itx != null) {
             if (itx.getY() < yVal) {
                yVal = itx.getY();
@@ -155,7 +157,7 @@ public class VoronoiDiagram {
       double[] res = null;
       for (int i = 0; i < p.getLines().size(); i++) {
          Line line = p.getLines().get(i);
-         Coordinate itx = bisector.intersects(line);
+         Coordinate itx = line.intersects(bisector);
          if (itx != null) {
             if ((itx.getX() > xVal && dir == RIGHT) || (itx.getX() < xVal && dir == LEFT)) {
                xVal = itx.getX();
@@ -234,6 +236,7 @@ public class VoronoiDiagram {
                                                                 // infinity
 
             bisector.setSrc(srcPoint);
+            stitch.add(bisector);
 
             p0.insertLine(bisector);
             p1.insertLine(bisector);
@@ -431,13 +434,14 @@ public class VoronoiDiagram {
          while (!stitch.inYBounds(candidate.getUpperY())) {
             stitchIndex++;
             stitch = stitching.get(stitchIndex);
+
          }
 
          // check if any point on the candidate line is to the left/right of the stitch
          // line
-         if (direction == RIGHT && candidate.getX0() > Math.min(stitch.getX0(), stitch.getX1())) {
+         if (direction == RIGHT && candidate.isRightOf(stitch)) {
             candidate.removeSelf();
-         } else if (direction == LEFT && candidate.getX0() < Math.max(stitch.getX0(), stitch.getX1())) { // left
+         } else if (direction == LEFT && candidate.isLeftOf(stitch)) { // left
             candidate.removeSelf();
          }
 

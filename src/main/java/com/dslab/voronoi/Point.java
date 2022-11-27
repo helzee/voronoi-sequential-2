@@ -41,6 +41,10 @@ public class Point {
       lines.remove(l);
    }
 
+   public Coordinate getCoordinate() {
+      return coord;
+   }
+
    public double getY() {
       return coord.y;
    }

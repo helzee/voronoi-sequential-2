@@ -95,6 +95,10 @@ public class Line extends LineSegment {
       p0 = new Coordinate(p);
       p0Bound = true;
       double newAngle = this.angle();
+      if (!this.isVertical()) { // vertical flip will result in similar radians but opposite sign
+         oldAngle = Math.abs(oldAngle);
+         newAngle = Math.abs(newAngle);
+      }
       if (Math.abs(oldAngle - newAngle) > 0.00001) { // its flipped 180 degrees if the angle is different
          // if flipped.. shift p1 past p0 on the line
          p1 = pointAlong(-1.0);
@@ -205,8 +209,24 @@ public class Line extends LineSegment {
       return Math.max(p0.getY(), p1.getY());
    }
 
+   public boolean isRightOf(Line other) {
+      return other.orientationIndex(this) != 1;
+   }
+
+   public boolean isLeftOf(Line other) {
+      return other.orientationIndex(this) == 1;
+   }
+
    public boolean inYBounds(double y) {
-      return getLowerY() <= y && getUpperY() >= y;
+      double yLower = getLowerY();
+      double yUpper = getUpperY();
+      if (!p0Bound && p0.getY() == yLower || !p1Bound && p1.getY() == yLower) {
+         yLower = Double.NEGATIVE_INFINITY;
+      }
+      if (!p1Bound && p1.getY() == yUpper || !p0Bound && p0.getY() == yUpper) {
+         yUpper = Double.POSITIVE_INFINITY;
+      }
+      return yLower <= y && yUpper >= y;
    }
 
 }
