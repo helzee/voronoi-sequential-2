@@ -514,6 +514,8 @@ public class VoronoiDiagram {
          // right
          if (direction == RIGHT && l.unbounded()) {
             l.horizontalTowardsRight();
+         } else if (direction == LEFT && l.unbounded()) {
+            l.horizontalTowardsLeft();
          }
       }
       // bisector is always traveling from src to end points. use this to determine

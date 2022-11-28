@@ -70,28 +70,37 @@ public class Line extends LineSegment {
    }
 
    /**
-    * Tests whether the segment is horizontal.
+    * Tests whether the segment is horizontal. It uses the coords of the points the
+    * line bisects NOT the coords of the line's src and end points
     *
     * @return <code>true</code> if the segment is horizontal
     */
    @Override
    public boolean isHorizontal() {
-      return Math.abs(p0.x - p1.x) < 0.1;
+      return Math.abs(pA.getX() - pB.getX()) < 0.1;
    }
 
    /**
-    * Tests whether the segment is horizontal.
+    * Tests whether the segment is horizontal. It uses the coords of the points the
+    * line bisects NOT the coords of the line's src and end points
     *
     * @return <code>true</code> if the segment is horizontal
     */
    @Override
    public boolean isVertical() {
-      return Math.abs(p0.y - p1.y) < 0.1;
+      return Math.abs(pA.getY() - pB.getY()) < 0.1;
    }
 
    // this is used for HORIZONTAL lines ONLY
    public void horizontalTowardsRight() {
-      if (p0.getX() > p1.getX()) {
+      if (p0.getX() - p1.getX() > -0.01) {
+         swapCoordinates();
+      }
+   }
+
+   // this is used for HORIZONTAL lines ONLY
+   public void horizontalTowardsLeft() {
+      if (p0.getX() - p1.getX() < 0.01) {
          swapCoordinates();
       }
    }
