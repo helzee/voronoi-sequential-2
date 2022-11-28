@@ -178,6 +178,8 @@ public class ConvexHull {
 
       organizeBridges(leftBridge, rightBridge);
 
+      // check if any points are on the top bridge segment or bottom bridge segment
+      checkIfPointsOnLine(leftBridge, rightBridge);
       // now the bridges are added to the end of the stitching. This represents the
       // top of the stitching. We now need to move the lower bridge to the bottom of
       // the stitching
@@ -224,6 +226,18 @@ public class ConvexHull {
          Collections.swap(leftBridge, 0, 1);
       }
       if (rightBridge.peek() == closestRightPoint && rightBridge.size() == 2) {
+         Collections.swap(rightBridge, 0, 1);
+      }
+
+   }
+
+   private static void checkIfPointsOnLine(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+      Line botBridge = new Line(leftBridge.get(0).getCoordinate(), rightBridge.get(0).getCoordinate());
+
+      if (leftBridge.size() == 2 && botBridge.containsPoint(leftBridge.get(1))) {
+         Collections.swap(leftBridge, 0, 1);
+      }
+      if (rightBridge.size() == 2 && botBridge.containsPoint(rightBridge.get(1))) {
          Collections.swap(rightBridge, 0, 1);
       }
 
