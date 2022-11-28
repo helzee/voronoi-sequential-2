@@ -16,6 +16,8 @@ public class Line extends LineSegment {
    private boolean p0Bound = false;
    private boolean p1Bound = false;
 
+   private Vector<Line> pastIntersectedLines = new Vector<>();
+
    // points that own this line (different from coords)
    private Point pA, pB;
 
@@ -34,17 +36,22 @@ public class Line extends LineSegment {
    }
 
    public Coordinate intersects(Line line) {
+      // the same line cannot intersect this line more than once
+      if (pastIntersectedLines.contains(line)) {
+         return null;
+      }
       Coordinate itx = this.lineIntersection(line);
       if (itx == null) {
          return null;
       }
       // if this line is bound at this intersection point it means its already been
       // intersected
-      if ((coordsEqual(itx, p0) && p0Bound) || (coordsEqual(itx, p1) && p1Bound)) {
-         return null;
-      }
+      // if ((coordsEqual(itx, p0) && p0Bound) || (coordsEqual(itx, p1) && p1Bound)) {
+      // return null;
+      // }
 
       if (withinBounds(itx) && line.withinBounds(itx)) {
+         pastIntersectedLines.add(line);
          return itx;
       }
 
