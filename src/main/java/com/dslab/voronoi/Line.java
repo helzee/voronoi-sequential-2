@@ -76,7 +76,17 @@ public class Line extends LineSegment {
     */
    @Override
    public boolean isHorizontal() {
-      return Math.abs(p0.y - p1.y) < 0.01;
+      return Math.abs(p0.x - p1.x) < 0.1;
+   }
+
+   /**
+    * Tests whether the segment is horizontal.
+    *
+    * @return <code>true</code> if the segment is horizontal
+    */
+   @Override
+   public boolean isVertical() {
+      return Math.abs(p0.y - p1.y) < 0.1;
    }
 
    // this is used for HORIZONTAL lines ONLY
