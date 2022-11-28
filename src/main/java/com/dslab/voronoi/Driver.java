@@ -50,6 +50,9 @@ public class Driver {
       map[400][200] = 1;
       map[150][150] = 1;
 
+      map[100][800] = 1;
+      map[100][802] = 1;
+
       // generate points on map[x][y] == 1
       for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
