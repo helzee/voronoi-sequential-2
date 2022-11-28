@@ -184,7 +184,7 @@ public class Line extends LineSegment {
       double newAngle = this.angle();
       if (Math.abs(oldAngle - newAngle) > 0.00001) { // its flipped 180 degrees if the angle is different
          // if flipped.. shift p0 past p1 on the line
-         p0 = pointAlong(1.0);
+         p0 = pointAlong(1.5);
       }
    }
 
@@ -294,6 +294,9 @@ public class Line extends LineSegment {
    public double getDirOfCoord(Coordinate p) {
       LineSegment line = new LineSegment(p, new Coordinate(100, p.getY()));
       Coordinate intersect = line.lineIntersection(this);
+      if (intersect == null) {
+         return Double.NaN;
+      }
       return intersect.getX() - p.getX();
    }
 
