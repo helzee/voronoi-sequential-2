@@ -99,7 +99,10 @@ public class VoronoiDiagram {
          return new Line(midPoint.getX(), -1 * size_y, midPoint.getX(), size_y, p1, p2);
 
       }
-      if (perpendicular_slope == 0) {
+      if (Math.abs(p1.getX() - p2.getX()) < 0.1) {
+         perpendicular_slope = 0;
+      }
+      if (perpendicular_slope < 0.00001 && perpendicular_slope > -0.00001) {
          if (p2.above(p1)) { // right above left.. the line is traveling to left
             return new Line(size_x, midPoint.getY(), -1 * size_x, midPoint.getY(), p1, p2);
          } else {

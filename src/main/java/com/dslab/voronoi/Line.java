@@ -40,6 +40,9 @@ public class Line extends LineSegment {
       if (pastIntersectedLines.contains(line)) {
          return null;
       }
+      if (line.isHorizontal() && this.isHorizontal() || line.isVertical() && this.isVertical()) {
+         return null;
+      }
       Coordinate itx = this.lineIntersection(line);
       if (itx == null) {
          return null;
@@ -73,7 +76,7 @@ public class Line extends LineSegment {
     */
    @Override
    public boolean isHorizontal() {
-      return Math.abs(p0.y - p1.y) < 0.0001;
+      return Math.abs(p0.y - p1.y) < 0.01;
    }
 
    // this is used for HORIZONTAL lines ONLY
