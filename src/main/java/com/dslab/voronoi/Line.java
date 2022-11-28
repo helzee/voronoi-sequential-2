@@ -16,7 +16,7 @@ public class Line extends LineSegment {
    private boolean p0Bound = false;
    private boolean p1Bound = false;
 
-   private Vector<Line> pastIntersectedLines = new Vector<>();
+   private HashSet<Line> pastIntersectedLines = new HashSet<>();
 
    // points that own this line (different from coords)
    private Point pA, pB;
