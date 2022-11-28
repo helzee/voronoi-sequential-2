@@ -8,6 +8,7 @@ import java.util.SortedSet;
 import java.util.Stack;
 import java.util.Vector;
 
+import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.geom.LineSegment;
 
 /**
@@ -359,7 +360,28 @@ public class ConvexHull {
       double distance = 0.0; // needed for polar_angle
       double pb = polar_angle(a, b, distance);
       double pc = polar_angle(a, c, distance);
+      return (greaterThan(pb, pa) && greaterThan(pc, pb)) ? pb : -1;
+   }
+
+   /**
+    * Checks if B is hit by line that revolves left on A to B
+    *
+    * @param a the central point of a left-revovling line AC
+    * @param b the point to check
+    * @param c the destination to revolve line AC
+    * @param p a's polar angle
+    * @return b's polar angle if B is it by line AC that revolves left on A to B.
+    *         Otherwise -1
+    */
+   double correctTurn(Point a, Point b, Point c, double pa, int lastTurn) {
+
+      double pb = Angle.angle(a.getCoordinate(), b.getCoordinate());
+      double pc = Angle.angle(a.getCoordinate(), c.getCoordinate());
       return (pb > pa && pc > pb) ? pb : -1;
+   }
+
+   public static boolean greaterThan(double a, double b) {
+      return a - b > -0.000001;
    }
 
    /**
