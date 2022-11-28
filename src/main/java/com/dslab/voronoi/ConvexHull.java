@@ -84,6 +84,10 @@ public class ConvexHull {
          origin = right.getBottomPoint();
 
       }
+      HashSet<Point> leftCH = new HashSet<>();
+      HashSet<Point> rightCH = new HashSet<>();
+      leftCH.addAll(this.points);
+      rightCH.addAll(right.getPoints());
 
       // EDGE CASE: check if one of thte hulls is empty after getting origin
 
@@ -91,40 +95,48 @@ public class ConvexHull {
       // I created a comparator function in this function so that it can access the
       // ORIGIN
       PriorityQueue<Point> sortedPoints = new PriorityQueue<Point>((Point a, Point b) -> {
-         double distA = 0.0;
-         double distB = 0.0;
+         double distA = a.distance(origin);
+         double distB = b.distance(origin);
          double polarA = polar_angle(origin, a, distA);
          double polarB = polar_angle(origin, b, distB);
-         if (polarA < polarB) {
-            return -1;
-         } else if (polarA > polarB) {
+         if (Math.abs(polarA - polarB) < 0.00001) { // check if equal
+            // if both points are left, then we want farthest one first (since we travers
+            // counterclockwise)
+            if (leftCH.contains(a) && leftCH.contains(b)) {
+               return greaterThan(distA, distB) ? -1 : 1;
+            } else if (leftCH.contains(a) && rightCH.contains(b)) {
+               return 1;
+            } else if (rightCH.contains(a) && leftCH.contains(b)) {
+               return -1;
+            } else { // both in rightCH
+               return greaterThan(distA, distB) ? 1 : -1;
+            }
+         } else if (greaterThan(polarA, polarB)) {
             return 1;
-         } else {
-            return distA < distB ? -1 : 1;
+         } else { // polarA < polarB
+            return -1;
          }
       });
       // As we sort points into priority queue, Track the leftmost and rightmost point
       // coords of each CH.
 
-      HashSet<Point> leftCH = new HashSet<>();
       for (Point p : this.points) {
          if (p != origin) {
             sortedPoints.add(p);
 
          }
-         leftCH.add(p);
 
       }
-      HashSet<Point> rightCH = new HashSet<>();
+
       for (Point p : right.points) {
          if (p != origin) {
             sortedPoints.add(p);
          }
-         rightCH.add(p);
+
       }
 
       // 3. Now that points are sorted. Run the graham algorithm.
-      graham(sortedPoints);
+      graham(sortedPoints, origin);
       // add the origin to this convex hull
       this.points.add(0, origin);
       // Within the graham algorithm, store discarded points from each CH in their
@@ -305,11 +317,12 @@ public class ConvexHull {
     * @return two priority queues containing the discarded poitns from each side,
     *         sorted from lowest to highest
     */
-   void graham(PriorityQueue<Point> q) {
+   void graham(PriorityQueue<Point> q, Point origin) {
 
       Vector<Point> hull = new Vector<Point>();
 
       Point last2 = null, last1 = null, next = null;
+      double prev_polar_angle = polar_angle(origin, q.peek(), origin.distance(q.peek()));
 
       // choose the first three points as convex-hull points.
       for (int i = 0; i < 2 && q.size() > 0; i++) {
@@ -319,7 +332,6 @@ public class ConvexHull {
          // q.remove(0);
       }
 
-      double prev_polar_angle = 0.0;
       while (q.size() > 0) {
          next = q.poll();
 
@@ -373,7 +385,7 @@ public class ConvexHull {
     * @return b's polar angle if B is it by line AC that revolves left on A to B.
     *         Otherwise -1
     */
-   double correctTurn(Point a, Point b, Point c, double pa, int lastTurn) {
+   double correctTurn(Point a, Point b, Point c, double pa) {
 
       double pb = Angle.angle(a.getCoordinate(), b.getCoordinate());
       double pc = Angle.angle(a.getCoordinate(), c.getCoordinate());
