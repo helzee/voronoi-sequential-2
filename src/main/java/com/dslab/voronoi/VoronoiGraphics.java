@@ -34,8 +34,8 @@ public class VoronoiGraphics implements Runnable {
 
    private int xShift = 500;
    private java.awt.Point mousePt;
-   private final int W = 1080;
-   private final int H = 1080;
+   private final int W = 1500;
+   private final int H = 1500;
    private java.awt.Point origin;
 
    private final int SCALE_DENOM = 100;
