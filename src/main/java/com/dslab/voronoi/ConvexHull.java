@@ -77,7 +77,7 @@ public class ConvexHull {
       // leftmost if both are same height) as origin. remove the origin from its
       // original convex hull
       Point origin;
-      if (this.getBottomPoint().getY() <= right.getBottomPoint().getY()) {
+      if (this.getBottomPoint().getY() < right.getBottomPoint().getY()) {
          origin = this.getBottomPoint();
 
       } else {
@@ -103,15 +103,15 @@ public class ConvexHull {
             // if both points are left, then we want farthest one first (since we travers
             // counterclockwise)
             if (leftCH.contains(a) && leftCH.contains(b)) {
-               return greaterThan(distA, distB) ? -1 : 1;
+               return distA > distB ? -1 : 1;
             } else if (leftCH.contains(a) && rightCH.contains(b)) {
                return 1;
             } else if (rightCH.contains(a) && leftCH.contains(b)) {
                return -1;
             } else { // both in rightCH
-               return greaterThan(distA, distB) ? 1 : -1;
+               return distA > distB ? 1 : -1;
             }
-         } else if (greaterThan(polarA, polarB)) {
+         } else if (polarA > polarB) {
             return 1;
          } else { // polarA < polarB
             return -1;
@@ -359,10 +359,23 @@ public class ConvexHull {
             last1 = hull.elementAt(hull.size() - 1);
             last2 = hull.elementAt(hull.size() - 2);
          }
+
          // now advance to the next point.
-         last2 = hull.lastElement();
-         last1 = next;
+
+         // if the second point is 180 degrees from the first point relative to the
+         // previous polar angle
+         // we need to figure out which point should get added to the hull first
          hull.add(next);
+         if (prev_polar_angle == 0.0) {
+            // if the next point is closer to our chosen origin point than the previous one,
+            // we should swap them in the hull
+            if (last2.distance(next) < last2.distance(last1)) {
+               Collections.swap(hull, hull.size() - 1, hull.size() - 2);
+            }
+
+         }
+         last2 = hull.get(hull.size() - 2);
+         last1 = hull.get(hull.size() - 1);
       }
 
       q.addAll(hull);
@@ -386,7 +399,15 @@ public class ConvexHull {
       double distance = 0.0; // needed for polar_angle
       double pb = polar_angle(a, b, distance);
       double pc = polar_angle(a, c, distance);
-      return (greaterThan(pb, pa) && greaterThan(pc, pb)) ? pb : -1;
+      if (Math.abs(pb + pc) < 0.000001) {
+         return 0;
+      }
+      // pb >= pa, pc >= pb
+      return (pb - pa > -0.000001 && pc - pb > -0.000001) ? pb : -1;
+   }
+
+   boolean equals(double a, double b) {
+      return Math.abs(a - b) < 0.000001;
    }
 
    /**

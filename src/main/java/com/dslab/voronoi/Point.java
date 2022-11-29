@@ -87,13 +87,13 @@ public class Point {
       for (Line l : lines) {
          if (direction == 2) { // cutoff right side
 
-            if (l.getCoordinate(0).getX() > exactCut && l.getCoordinate(1).getX() > exactCut) {
+            if (l.isRightOf(cut)) {
 
                removedLines.add(l);
             }
          } else {
 
-            if (l.getCoordinate(0).getX() < exactCut && l.getCoordinate(1).getX() < exactCut) {
+            if (l.isLeftOf(cut)) {
                removedLines.add(l);
             }
 
