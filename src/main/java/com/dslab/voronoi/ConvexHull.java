@@ -77,7 +77,7 @@ public class ConvexHull {
       // leftmost if both are same height) as origin. remove the origin from its
       // original convex hull
       Point origin;
-      if (this.getBottomPoint().getY() < right.getBottomPoint().getY()) {
+      if (this.getBottomPoint().getY() - right.getBottomPoint().getY() < 0.000001) {
          origin = this.getBottomPoint();
 
       } else {
