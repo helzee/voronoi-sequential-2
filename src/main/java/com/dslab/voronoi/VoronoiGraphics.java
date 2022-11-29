@@ -34,16 +34,15 @@ public class VoronoiGraphics implements Runnable {
 
    private int xShift = 500;
    private java.awt.Point mousePt;
-   private final int W;
-   private final int H;
+   private final int W = 1080;
+   private final int H = 1080;
    private java.awt.Point origin;
 
    private final int SCALE_DENOM = 100;
    private int scale = SCALE_DENOM;
 
    public VoronoiGraphics(int x, int y, Vector<com.dslab.voronoi.Point> points) {
-      this.W = x;
-      this.H = y;
+
       this.points = points;
       origin = new Point(0, 0);
       startGraphics(x, y);
@@ -53,7 +52,7 @@ public class VoronoiGraphics implements Runnable {
    public void run() {
       while (true) {
          writeToGraphics(points);
-         long resumeTime = System.currentTimeMillis() + 500;
+         long resumeTime = System.currentTimeMillis() + 200;
          do {
          } while (System.currentTimeMillis() < resumeTime);
 
@@ -72,8 +71,8 @@ public class VoronoiGraphics implements Runnable {
       MouseScrollTest();
 
       theInsets = gWin.getInsets();
-      gWin.setSize(x + theInsets.left + theInsets.right,
-            y + theInsets.top + theInsets.bottom);
+      gWin.setSize(W + theInsets.left + theInsets.right,
+            H + theInsets.top + theInsets.bottom);
 
       // wait for frame to get initialized
       long resumeTime = System.currentTimeMillis() + 100;
@@ -108,7 +107,7 @@ public class VoronoiGraphics implements Runnable {
       gWin.addMouseWheelListener(new MouseAdapter() {
          @Override
          public void mouseWheelMoved(MouseWheelEvent e) {
-            scale -= e.getWheelRotation();
+            scale -= (10 * e.getWheelRotation());
 
          }
       });
@@ -135,14 +134,16 @@ public class VoronoiGraphics implements Runnable {
                1, 1);
 
          // draw this point's lines
+         synchronized (p) {
 
-         for (Line l : p.getLines()) {
-            g.setColor(lnColor);
-            g.drawLine((int) (l.getCoordinate(0).getX() * newScale) + origin.x,
-                  (int) (l.getCoordinate(0)
-                        .getY() * newScale) + origin.y,
-                  (int) (l.getCoordinate(1).getX() * newScale) + origin.x,
-                  (int) (l.getCoordinate(1).getY() * newScale) + origin.y);
+            for (Line l : p.getLines()) {
+               g.setColor(lnColor);
+               g.drawLine((int) (l.getCoordinate(0).getX() * newScale) + origin.x,
+                     (int) (l.getCoordinate(0)
+                           .getY() * newScale) + origin.y,
+                     (int) (l.getCoordinate(1).getX() * newScale) + origin.x,
+                     (int) (l.getCoordinate(1).getY() * newScale) + origin.y);
+            }
          }
       }
 

@@ -42,7 +42,10 @@ public class Point {
    }
 
    public void removeLine(Line l) {
-      lines.remove(l);
+      synchronized (this) {
+         lines.remove(l);
+      }
+
    }
 
    public Coordinate getCoordinate() {
