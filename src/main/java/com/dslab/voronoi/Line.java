@@ -204,7 +204,8 @@ public class Line extends LineSegment {
       p1 = new Coordinate(p);
       p1Bound = true;
       double newAngle = this.angle();
-      if (Math.abs(oldAngle - newAngle) > 0.00001) { // its flipped 180 degrees if the angle is different
+      if (Math.abs(Math.abs(oldAngle) - Math.abs(newAngle)) > 0.00001) { // its flipped 180 degrees if the angle is
+                                                                         // different
          // if flipped.. shift p0 past p1 on the line
          p0 = pointAlong(1.5);
       }

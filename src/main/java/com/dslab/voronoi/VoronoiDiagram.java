@@ -21,6 +21,7 @@ public class VoronoiDiagram {
       this.size_x = size_x;
       this.size_y = size_y;
       divide(size_x, size_y, points, 0, points.size() - 1);
+
    }
 
    ConvexHull divide(int size_x, int size_y, Vector<Point> points, int lower, int upper) {
@@ -480,7 +481,7 @@ public class VoronoiDiagram {
          stitch = stitching.get(stitchIndex);
 
          // get to the stitch section that is at the same level as the candidate line
-         while (!stitch.inYBounds(candidate.getUpperY())) {
+         while (stitchIndex < stitching.size() - 1 && !stitch.inYBounds(candidate.getUpperY())) {
             stitchIndex++;
             stitch = stitching.get(stitchIndex);
 
