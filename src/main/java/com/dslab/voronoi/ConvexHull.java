@@ -46,16 +46,36 @@ public class ConvexHull {
          points.add(p2);
          points.add(p1);
 
-      } else {
+      } else if (p2.above(p1)) {
          points.add(p1);
          points.add(p2);
 
+      } else {
+         if (p1.getX() < p2.getX()) {
+            points.add(p1);
+            points.add(p2);
+         } else {
+            points.add(p2);
+            points.add(p1);
+         }
       }
 
    }
 
    public Point getBottomPoint() {
       return points.get(0);
+   }
+
+   public Point getTopPoint() {
+      Point res = null;
+      double maxY = Double.NEGATIVE_INFINITY;
+      for (Point p : points) {
+         if (p.getY() > maxY) {
+            res = p;
+            maxY = p.getY();
+         }
+      }
+      return res;
    }
 
    /*
@@ -89,12 +109,20 @@ public class ConvexHull {
       leftCH.addAll(this.points);
       rightCH.addAll(right.getPoints());
 
+      boolean seenTop = false;
+      Point top;
+      Point topLeft = getTopPoint();
+      Point topRight = right.getTopPoint();
+
+      top = topRight.getY() < topLeft.getY() ? topLeft : topRight;
+
       // EDGE CASE: check if one of thte hulls is empty after getting origin
 
       // 2. Sort all points based on their polar angle from the origin point.
       // I created a comparator function in this function so that it can access the
       // ORIGIN
-      PriorityQueue<Point> sortedPoints = new PriorityQueue<Point>((Point a, Point b) -> {
+      PriorityQueue<Point> sortedPointsRight = new PriorityQueue<Point>((Point a, Point b) -> {
+
          double distA = a.distance(origin);
          double distB = b.distance(origin);
          double polarA = polar_angle(origin, a, distA);
@@ -102,15 +130,8 @@ public class ConvexHull {
          if (Math.abs(polarA - polarB) < 0.00001) { // check if equal
             // if both points are left, then we want farthest one first (since we travers
             // counterclockwise)
-            if (leftCH.contains(a) && leftCH.contains(b)) {
-               return distA > distB ? -1 : 1;
-            } else if (leftCH.contains(a) && rightCH.contains(b)) {
-               return 1;
-            } else if (rightCH.contains(a) && leftCH.contains(b)) {
-               return -1;
-            } else { // both in rightCH
-               return distA > distB ? 1 : -1;
-            }
+            return distA < distB ? 1 : -1;
+
          } else if (polarA > polarB) {
             return 1;
          } else { // polarA < polarB
@@ -119,26 +140,63 @@ public class ConvexHull {
       });
       // As we sort points into priority queue, Track the leftmost and rightmost point
       // coords of each CH.
+      PriorityQueue<Point> sortedPointsLeft = new PriorityQueue<Point>((Point a, Point b) -> {
 
-      for (Point p : this.points) {
-         if (p != origin) {
-            sortedPoints.add(p);
+         double distA = a.distance(origin);
+         double distB = b.distance(origin);
+         double polarA = polar_angle(origin, a, distA);
+         double polarB = polar_angle(origin, b, distB);
+         if (Math.abs(polarA - polarB) < 0.00001) { // check if equal
+            // if both points are left, then we want farthest one first (since we travers
+            // counterclockwise)
+            return distA < distB ? -1 : 1;
 
+         } else if (polarA > polarB) {
+            return 1;
+         } else { // polarA < polarB
+            return -1;
          }
-
-      }
+      });
 
       for (Point p : right.points) {
          if (p != origin) {
-            sortedPoints.add(p);
+            if (!seenTop) {
+               sortedPointsRight.add(p);
+            } else {
+               sortedPointsLeft.add(p);
+            }
+         }
+
+         if (p == top) {
+            seenTop = true;
          }
 
       }
 
+      for (Point p : this.points) {
+         if (p != origin) {
+            if (!seenTop) {
+               sortedPointsRight.add(p);
+            } else {
+               sortedPointsLeft.add(p);
+            }
+         }
+
+         if (p == top) {
+            seenTop = true;
+         }
+
+      }
+
+      Vector<Point> allSortedPoints = new Vector<>();
+      allSortedPoints.addAll(sortedPointsRight);
+      allSortedPoints.addAll(sortedPointsLeft);
+      allSortedPoints.add(0, origin);
+
       // 3. Now that points are sorted. Run the graham algorithm.
-      graham(sortedPoints, origin);
+      graham(allSortedPoints);
       // add the origin to this convex hull
-      this.points.add(0, origin);
+      // this.points.add(0, origin);
       // Within the graham algorithm, store discarded points from each CH in their
       // own priority queue ordered based on lowest y value. Return the new convex
       // hull as a vector
@@ -179,7 +237,7 @@ public class ConvexHull {
       organizeBridges(leftBridge, rightBridge);
 
       // check if any points are on the top bridge segment or bottom bridge segment
-      checkIfPointsOnLine(leftBridge, rightBridge);
+      // checkIfPointsOnLine(leftBridge, rightBridge);
       // now the bridges are added to the end of the stitching. This represents the
       // top of the stitching. We now need to move the lower bridge to the bottom of
       // the stitching
@@ -331,23 +389,23 @@ public class ConvexHull {
     * @return two priority queues containing the discarded poitns from each side,
     *         sorted from lowest to highest
     */
-   void graham(PriorityQueue<Point> q, Point origin) {
+   void graham(Vector<Point> q) {
 
       Vector<Point> hull = new Vector<Point>();
 
       Point last2 = null, last1 = null, next = null;
-      double prev_polar_angle = polar_angle(origin, q.peek(), origin.distance(q.peek()));
+      double prev_polar_angle = polar_angle(q.get(0), q.get(1), 0.0);
 
       // choose the first three points as convex-hull points.
       for (int i = 0; i < 2 && q.size() > 0; i++) {
          last2 = last1;
-         last1 = q.poll();
+         last1 = q.remove(0);
          hull.add(last1);
          // q.remove(0);
       }
 
       while (q.size() > 0) {
-         next = q.poll();
+         next = q.remove(0);
 
          while ((prev_polar_angle = leftturn(last2, last1, next, prev_polar_angle)) < 0) {
             // remove last1 that is no longer a convex point

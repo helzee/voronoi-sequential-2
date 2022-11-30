@@ -35,12 +35,34 @@ public class Line extends LineSegment {
 
    }
 
+   public boolean isParallel(Line line) {
+      if (line.isHorizontal() && this.isHorizontal() || line.isVertical() && this.isVertical()) {
+         return true;
+      }
+      LineSegment l1, l2;
+      if (pA == line.pA) {
+         l1 = new LineSegment(pA.getCoordinate(), line.pB.getCoordinate());
+      } else {
+         l1 = new LineSegment(pA.getCoordinate(), line.pA.getCoordinate());
+      }
+      if (pB == line.pB) {
+         l2 = new LineSegment(pB.getCoordinate(), line.pA.getCoordinate());
+      } else {
+         l2 = new LineSegment(pB.getCoordinate(), line.pB.getCoordinate());
+      }
+
+      if (l1.lineIntersection(l2) == null) {
+         return true;
+      }
+      return false;
+   }
+
    public Coordinate intersects(Line line) {
       // the same line cannot intersect this line more than once
       if (pastIntersectedLines.contains(line)) {
          return null;
       }
-      if (line.isHorizontal() && this.isHorizontal() || line.isVertical() && this.isVertical()) {
+      if (this.isParallel(line)) {
          return null;
       }
       Coordinate itx = this.lineIntersection(line);
