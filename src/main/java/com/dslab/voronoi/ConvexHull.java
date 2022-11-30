@@ -58,134 +58,164 @@ public class ConvexHull {
       return points.get(0);
    }
 
+   Point getLeftMostPoint() {
+      Point leftmost = getBottomPoint();
+      for (Point p : points) {
+         if (leftmost.getX() > p.getX()) {
+            leftmost = p;
+         }
+      }
+      return leftmost;
+   }
+
+   Point getRightMostPoint() {
+      Point rightmost = getBottomPoint();
+      for (Point p : points) {
+         if (rightmost.getX() < p.getX()) {
+            rightmost = p;
+         }
+      }
+      return rightmost;
+   }
+
+   int orientation(Point a, Point b, Point c) {
+      double res = (b.getY() - a.getY()) * (c.getX() - b.getX()) - (c.getY() - b.getY()) * (b.getX() - a.getX());
+
+      if (-0.000001 < res && res < 0.000001) {
+         return 0;
+      }
+      if (res > 0) {
+         return 1;
+      }
+      return -1;
+   }
+
+   private static int modulo(int a, int b) {
+      if (a % b < 0) {
+         return b + (a % b);
+      } else {
+         return a % b;
+      }
+   }
+
+   /**
+    * 
+    * @param left
+    * @param right
+    * @param ia
+    * @param ib
+    * @return bridge points in counterclockwise direction (upper bridge is
+    *         right->left and lower bridge is left->right)
+    */
+   private Vector<Integer> getBridge(ConvexHull left, ConvexHull right, int ia, int ib) {
+      boolean done = false;
+      while (!done) {
+         done = true;
+         // 3. move point b clockwise up the right convex hull until it is tangent to
+         // right CH
+
+         while (right.size() > 1 && 0 < orientation(right.getPoints().get(ib), left.points.get(ia),
+               right.getPoints().get(modulo((ib - 1), right.size())))) {
+            ib = modulo((ib - 1), right.size());
+         }
+         // 3. move point b clockwise up the right convex hull until it is tangent to
+         // right CH
+
+         // 4. move point a ccw up the left CH until it is tangent to left CH
+
+         while (left.size() > 1 && 0 > orientation(
+               left.points.get(ia), right.getPoints().get(ib),
+               left.points.get((ia + 1) % left.size()))) {
+            ia = (ia + 1) % left.size();
+            // 5. if line segment now intersects the right CH, go back to step 3
+            done = false;
+         }
+
+      }
+      Vector<Integer> bridge = new Vector<>();
+      bridge.add(ib);
+      bridge.add(ia);
+
+      return bridge;
+   }
+
    /*
     * Merge 2 convex hulls that are left and right of eachother. . The merged CH is
-    * the left convex hull. This method
-    * returns two linked lists which represent
-    * the points removed from each convex hull in order of low to high. Each list
-    * also contains a point from the new convex hull representing entrance and exit
-    * points into the stitching (Note: not
-    * lowest to highest. sometimes the points removed can start higher than the
-    * lowest point on the CH)
-    * The merge utilizes grahams algorithm
+    * the left convex hull.
     * 
     * ALWAYS called merge from left convex hull.
     */
-   public Vector<Stack<Point>> merge(ConvexHull right) {
+   public Vector<Vector<Point>> merge(ConvexHull right) {
 
-      // 1. find the lowest point of each convex hull. Choose the lowest one (and
-      // leftmost if both are same height) as origin. remove the origin from its
-      // original convex hull
-      Point origin;
-      if (this.getBottomPoint().getY() - right.getBottomPoint().getY() < 0.000001) {
-         origin = this.getBottomPoint();
+      // merge based off this algorithm
+      // https://iq.opengenus.org/divide-and-conquer-convex-hull/#:~:text=The%20key%20idea%20is%20that,results%20to%20a%20complete%20solution.
+      // 1. find leftmost point b of right and rightmost point a of left
+      Point leftmost = right.getLeftMostPoint();
+      Point rightmost = this.getRightMostPoint();
+      // 2. create a line segment from a to b
+      // Vector<Point> topBridge = new Vector<>();
+      // topBridge.add(leftmost);
+      // topBridge.add(rightmost);
+      // Vector<Point> botBridge = new Vector<>();
+      // botBridge.add(leftmost);
+      // botBridge.add(rightmost);
 
-      } else {
-         origin = right.getBottomPoint();
+      int ia = points.indexOf(rightmost);
+      int ib = right.getPoints().indexOf(leftmost);
 
-      }
-      HashSet<Point> leftCH = new HashSet<>();
-      HashSet<Point> rightCH = new HashSet<>();
-      leftCH.addAll(this.points);
-      rightCH.addAll(right.getPoints());
+      // get upper bridge
+      Vector<Integer> upperBridge = getBridge(this, right, ia, ib);
 
-      // EDGE CASE: check if one of thte hulls is empty after getting origin
-
-      // 2. Sort all points based on their polar angle from the origin point.
-      // I created a comparator function in this function so that it can access the
-      // ORIGIN
-      PriorityQueue<Point> sortedPoints = new PriorityQueue<Point>((Point a, Point b) -> {
-         double distA = a.distance(origin);
-         double distB = b.distance(origin);
-         double polarA = polar_angle(origin, a, distA);
-         double polarB = polar_angle(origin, b, distB);
-         if (Math.abs(polarA - polarB) < 0.00001) { // check if equal
-            // if both points are left, then we want farthest one first (since we travers
-            // counterclockwise)
-            if (leftCH.contains(a) && leftCH.contains(b)) {
-               return distA > distB ? -1 : 1;
-            } else if (leftCH.contains(a) && rightCH.contains(b)) {
-               return 1;
-            } else if (rightCH.contains(a) && leftCH.contains(b)) {
-               return -1;
-            } else { // both in rightCH
-               return distA > distB ? 1 : -1;
-            }
-         } else if (polarA > polarB) {
-            return 1;
-         } else { // polarA < polarB
-            return -1;
+      // in the case that the starting points are a tanget, we want to ensure the
+      // lower bridge will not be the same as the upper bridge
+      if (upperBridge.get(0) == ib && upperBridge.get(1) == ia) {
+         // this accounts for the case where left or right side is size 1,
+         if (this.size() > right.size()) {
+            ia = (ia - 1) % this.size();
+         } else {
+            ib = (ib + 1) % right.size();
          }
-      });
-      // As we sort points into priority queue, Track the leftmost and rightmost point
-      // coords of each CH.
-
-      for (Point p : this.points) {
-         if (p != origin) {
-            sortedPoints.add(p);
-
-         }
-
       }
 
-      for (Point p : right.points) {
-         if (p != origin) {
-            sortedPoints.add(p);
-         }
-
-      }
-
-      // 3. Now that points are sorted. Run the graham algorithm.
-      graham(sortedPoints, origin);
-      // add the origin to this convex hull
-      this.points.add(0, origin);
-      // Within the graham algorithm, store discarded points from each CH in their
-      // own priority queue ordered based on lowest y value. Return the new convex
-      // hull as a vector
-      // Replace this convex hull (the left one) with the new one. Return the two
-      // priority queues
+      // get lower bridge (use same function with backwards inputs)
+      Vector<Integer> lowerBridge = getBridge(right, this, ib, ia);
 
       // go through the convex hull. add the bridge points.. points at the top and
       // bottom of each stitching
 
-      Stack<Point> leftBridge = new Stack<>();
+      int lowerLeftIndex = lowerBridge.get(0);
+      int upperLeftIndex = upperBridge.get(1);
+      int lowerRightIndex = lowerBridge.get(1);
+      int upperRightIndex = upperBridge.get(0);
+      Vector<Point> newHull = new Vector<>();
 
-      Stack<Point> rightBridge = new Stack<>();
-
-      for (int i = 1; i < points.size() + 1; i++) {
-         Point a = points.get(i - 1);
-         Point b = points.get(i % points.size());
-         if (leftCH.contains(a) && rightCH.contains(b)) {
-            // point a is in left side and b is in right side
-            if (leftBridge.isEmpty() || leftBridge.peek() != a) {
-               leftBridge.add(a);
-            }
-            if (rightBridge.isEmpty() || rightBridge.peek() != b) {
-               rightBridge.add(b);
-            }
-
-         } else if (rightCH.contains(a) && leftCH.contains(b)) {
-            // point a is in right side and b is in left side
-            if (leftBridge.isEmpty() || leftBridge.peek() != b) {
-               leftBridge.add(b);
-            }
-            if (rightBridge.isEmpty() || rightBridge.peek() != a) {
-               rightBridge.add(a);
-            }
-
+      for (int i = lowerRightIndex;; i = (i + 1) % right.size()) {
+         newHull.add(right.points.get(i));
+         if (i == upperRightIndex) {
+            break;
          }
       }
 
-      organizeBridges(leftBridge, rightBridge);
+      for (int i = upperLeftIndex;; i = (i + 1) % this.size()) {
+         newHull.add(points.get(i));
+         if (i == lowerLeftIndex) {
+            break;
+         }
+      }
 
-      // check if any points are on the top bridge segment or bottom bridge segment
-      checkIfPointsOnLine(leftBridge, rightBridge);
-      // now the bridges are added to the end of the stitching. This represents the
-      // top of the stitching. We now need to move the lower bridge to the bottom of
-      // the stitching
-      Vector<Stack<Point>> bridges = new Vector<>();
+      Vector<Point> leftBridge = new Stack<>();
+
+      Vector<Point> rightBridge = new Stack<>();
+      leftBridge.add(points.get(lowerLeftIndex));
+      leftBridge.add(points.get(upperLeftIndex));
+      rightBridge.add(right.points.get(lowerRightIndex));
+      rightBridge.add(right.points.get(upperRightIndex));
+
+      Vector<Vector<Point>> bridges = new Vector<>();
       bridges.add(leftBridge);
       bridges.add(rightBridge);
+
+      this.points = newHull;
 
       return bridges;
    }

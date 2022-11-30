@@ -180,10 +180,10 @@ public class VoronoiDiagram {
 
       // we need to run a convex hull merge algorithm to find the starting and ending
       // bridge
-      Vector<Stack<Point>> bridges = leftConvexHull.merge(rightConvexHull);
+      Vector<Vector<Point>> bridges = leftConvexHull.merge(rightConvexHull);
 
-      Stack<Point> leftBridge = bridges.get(0);
-      Stack<Point> rightBridge = bridges.get(1);
+      Vector<Point> leftBridge = bridges.get(0);
+      Vector<Point> rightBridge = bridges.get(1);
 
       // choose the lowest point from left and right.
       Point p0 = leftBridge.remove(0);
@@ -206,11 +206,11 @@ public class VoronoiDiagram {
 
       if (!leftBridge.isEmpty()) {
 
-         upperLeftBridge = leftBridge.pop();
+         upperLeftBridge = leftBridge.remove(0);
       }
       if (!rightBridge.isEmpty()) {
 
-         upperRightBridge = rightBridge.pop();
+         upperRightBridge = rightBridge.remove(0);
       }
 
       Vector<Line> stitch = new Vector<>();
