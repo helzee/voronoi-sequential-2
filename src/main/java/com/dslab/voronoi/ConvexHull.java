@@ -211,6 +211,8 @@ public class ConvexHull {
       rightBridge.add(right.points.get(lowerRightIndex));
       rightBridge.add(right.points.get(upperRightIndex));
 
+      bridgeCaseParallel(leftBridge, rightBridge);
+
       Vector<Vector<Point>> bridges = new Vector<>();
       bridges.add(leftBridge);
       bridges.add(rightBridge);
@@ -240,10 +242,10 @@ public class ConvexHull {
 
    // find the closest points from each bridge. these are the only points we will
    // need for the merge so discard rest
-   private static void bridgeCaseParallel(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+   private static void bridgeCaseParallel(Vector<Point> leftBridge, Vector<Point> rightBridge) {
 
-      Point closestLeftPoint = leftBridge.peek();
-      Point closestRightPoint = rightBridge.peek();
+      Point closestLeftPoint = leftBridge.get(leftBridge.size() - 1);
+      Point closestRightPoint = rightBridge.get(rightBridge.size() - 1);
       for (Point l : leftBridge) {
          for (Point r : rightBridge) {
             if (closestLeftPoint.distance(closestRightPoint) > l.distance(r)) {
@@ -252,10 +254,10 @@ public class ConvexHull {
             }
          }
       }
-      if (leftBridge.peek() == closestLeftPoint && leftBridge.size() == 2) {
+      if (leftBridge.get(leftBridge.size() - 1) == closestLeftPoint && leftBridge.size() == 2) {
          Collections.swap(leftBridge, 0, 1);
       }
-      if (rightBridge.peek() == closestRightPoint && rightBridge.size() == 2) {
+      if (rightBridge.get(rightBridge.size() - 1) == closestRightPoint && rightBridge.size() == 2) {
          Collections.swap(rightBridge, 0, 1);
       }
 
