@@ -171,7 +171,7 @@ public class ConvexHull {
       if (upperBridge.get(0) == ib && upperBridge.get(1) == ia) {
          // this accounts for the case where left or right side is size 1,
          if (this.size() > right.size()) {
-            ia = (ia - 1) % this.size();
+            ia = modulo((ia - 1), this.size());
          } else {
             ib = (ib + 1) % right.size();
          }
@@ -211,7 +211,8 @@ public class ConvexHull {
       rightBridge.add(right.points.get(lowerRightIndex));
       rightBridge.add(right.points.get(upperRightIndex));
 
-      bridgeCaseParallel(leftBridge, rightBridge);
+      organizeBridges(leftBridge, rightBridge);
+      checkIfPointsOnLine(leftBridge, rightBridge);
 
       Vector<Vector<Point>> bridges = new Vector<>();
       bridges.add(leftBridge);
@@ -225,7 +226,7 @@ public class ConvexHull {
    // we want the bottommost entrance to the convex hull to be at position 0
    // can't use height to find this. must use angle. whichever bridge has an angle
    // closer to 90 degrees from x axis is better
-   private static void organizeBridges(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+   private static void organizeBridges(Vector<Point> leftBridge, Vector<Point> rightBridge) {
 
       if (allPointsOnLine(leftBridge, rightBridge)) {
          bridgeCaseParallel(leftBridge, rightBridge);
@@ -263,7 +264,7 @@ public class ConvexHull {
 
    }
 
-   private static void checkIfPointsOnLine(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+   private static void checkIfPointsOnLine(Vector<Point> leftBridge, Vector<Point> rightBridge) {
       Line botBridge = new Line(leftBridge.get(0).getCoordinate(), rightBridge.get(0).getCoordinate());
 
       if (leftBridge.size() == 2 && botBridge.containsPoint(leftBridge.get(1))) {
@@ -275,9 +276,10 @@ public class ConvexHull {
 
    }
 
-   private static boolean allPointsOnLine(Stack<Point> leftBridge, Stack<Point> rightBridge) {
+   private static boolean allPointsOnLine(Vector<Point> leftBridge, Vector<Point> rightBridge) {
 
-      Line line = new Line(leftBridge.peek().getCoordinate(), rightBridge.peek().getCoordinate());
+      Line line = new Line(leftBridge.get(leftBridge.size() - 1).getCoordinate(), rightBridge.get(
+            rightBridge.size() - 1).getCoordinate());
       for (Point p : leftBridge) {
          if (!line.containsPoint(p)) {
             return false;
@@ -291,11 +293,11 @@ public class ConvexHull {
       return true;
    }
 
-   private static void bridgeCaseOfFour(Stack<Point> leftBridge, Stack<Point> rightBridge) {
-      Point leftBridgeA1 = leftBridge.pop();
-      Point leftBridgeB1 = leftBridge.pop();
-      Point rightBridgeA2 = rightBridge.pop();
-      Point rightBridgeB2 = rightBridge.pop();
+   private static void bridgeCaseOfFour(Vector<Point> leftBridge, Vector<Point> rightBridge) {
+      Point leftBridgeA1 = leftBridge.remove(leftBridge.size() - 1);
+      Point leftBridgeB1 = leftBridge.remove(leftBridge.size() - 1);
+      Point rightBridgeA2 = rightBridge.remove(rightBridge.size() - 1);
+      Point rightBridgeB2 = rightBridge.remove(rightBridge.size() - 1);
       LineSegment bridgeA = new LineSegment(leftBridgeA1.getCoordinate(), rightBridgeA2.getCoordinate());
       LineSegment bridgeB = new LineSegment(leftBridgeB1.getCoordinate(), rightBridgeB2.getCoordinate());
 
@@ -329,8 +331,8 @@ public class ConvexHull {
 
    // https://math.stackexchange.com/questions/707673/find-angle-in-degrees-from-one-point-to-another-in-2d-space
 
-   private static void bridgeCaseOfThree(Stack<Point> smallBridge, Stack<Point> largeBridge) {
-      Point origin = smallBridge.peek();
+   private static void bridgeCaseOfThree(Vector<Point> smallBridge, Vector<Point> largeBridge) {
+      Point origin = smallBridge.get(smallBridge.size() - 1);
       PriorityQueue<Point> sortedPoints = new PriorityQueue<Point>((Point a, Point b) -> {
          double angleA = Math.atan2(a.getY() - origin.getY(), a.getX() - origin.getX());
          double angleB = Math.atan2(b.getY() - origin.getY(), b.getX() - origin.getX());
@@ -338,8 +340,8 @@ public class ConvexHull {
          double diffB = Math.abs(angleB - (Math.PI / 2));
          return diffA > diffB ? -1 : 1;
       });
-      sortedPoints.add(largeBridge.pop());
-      sortedPoints.add(largeBridge.pop());
+      sortedPoints.add(largeBridge.remove(largeBridge.size() - 1));
+      sortedPoints.add(largeBridge.remove(largeBridge.size() - 1));
       largeBridge.add(sortedPoints.poll());
       largeBridge.add(sortedPoints.poll());
    }

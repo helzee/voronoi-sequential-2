@@ -25,12 +25,12 @@ public class Driver {
       Vector<Point> points = new Vector<Point>();
 
       // space should be always 1250 x 1250
-      int size = 1250;
+      int size = 10000;
       int[][] map = new int[size][size];
 
       for (int i = 0; i < N; i++) {
          do {
-            int x = rand.nextInt(size);
+            int x = i;
             int y = rand.nextInt(size);
             if (map[x][y] != 1) {
                map[x][y] = 1;
@@ -41,21 +41,21 @@ public class Driver {
 
       // TODO: get this case working
       // map[100][100] = 1;
-      map[100][200] = 1;
-      map[200][100] = 1;
-      map[100][600] = 1;
-      map[200][100] = 1;
-      map[200][700] = 1;
-      map[300][100] = 1;
+      // map[100][200] = 1;
+      // map[200][100] = 1;
+      // map[100][600] = 1;
+      // map[200][100] = 1;
+      // map[200][700] = 1;
+      // map[300][100] = 1;
       // map[400][200] = 1;
-      map[150][150] = 1;
+      // map[150][150] = 1;
 
-      map[100][800] = 1;
+      // map[100][800] = 1;
       // map[100][802] = 1;
       // map[200][200] = 1;
-      map[800][200] = 1;
-      map[800][300] = 1;
-      map[800][400] = 1;
+      // map[800][200] = 1;
+      // map[800][300] = 1;
+      // map[800][400] = 1;
       // map[800][500] = 1;
       // map[900][100] = 1;
       // map[700][100] = 1;
