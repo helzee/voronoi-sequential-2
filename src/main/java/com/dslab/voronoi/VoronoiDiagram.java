@@ -198,7 +198,7 @@ public class VoronoiDiagram {
       Line lastBisectedLine = null;
 
       HashSet<Line> seenLines = new HashSet<>();
-      HashSet<Point> seenPoints = new HashSet<>();
+      Vector<Point> seenPoints = new Vector<>();
       seenPoints.add(p0);
       seenPoints.add(p1);
       Point upperLeftBridge = p0;

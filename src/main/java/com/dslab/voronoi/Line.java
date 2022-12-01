@@ -2,8 +2,7 @@ package com.dslab.voronoi;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineSegment;
-import java.io.Serializable;
-import java.util.ConcurrentModificationException;
+
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -77,6 +76,7 @@ public class Line extends LineSegment {
 
       if (withinBounds(itx) && line.withinBounds(itx)) {
          pastIntersectedLines.add(line);
+         line.pastIntersectedLines.add(this);
          return itx;
       }
 
@@ -84,8 +84,25 @@ public class Line extends LineSegment {
 
    }
 
+   @Override
+   public boolean equals(Object other) {
+      if (other.getClass() == this.getClass()) {
+         Line l = (Line) other;
+         if (pA.equals(l.pA) && pB.equals(l.pB)) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   @Override
+   public int hashCode() {
+      return pA.hashCode() * pB.hashCode();
+   }
+
    public static boolean coordsEqual(Coordinate a, Coordinate b) {
-      if (Math.abs(a.getX() - b.getX()) < 0.01 && Math.abs(a.getY() - b.getY()) < 0.01) {
+      if (Math.abs(a.getX() - b.getX()) < 0.1 && Math.abs(a.getY() - b.getY()) < 0.1) {
          return true;
       }
       return false;
@@ -300,6 +317,9 @@ public class Line extends LineSegment {
 
       pA.removeLine(this);
       pB.removeLine(this);
+      for (Line l : pastIntersectedLines) {
+         l.pastIntersectedLines.remove(this);
+      }
 
    }
 

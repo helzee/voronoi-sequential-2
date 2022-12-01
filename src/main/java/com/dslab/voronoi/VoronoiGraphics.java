@@ -50,10 +50,9 @@ public class VoronoiGraphics implements Runnable {
    }
 
    public void run() {
-
       while (true) {
 
-         long resumeTime = System.currentTimeMillis() + 5000;
+         long resumeTime = System.currentTimeMillis() + 1000;
          do {
          } while (System.currentTimeMillis() < resumeTime);
          writeToGraphics(points);

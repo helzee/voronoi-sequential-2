@@ -25,12 +25,14 @@ public class Driver {
       Vector<Point> points = new Vector<Point>();
 
       // space should be always 1250 x 1250
-      int size = 10000;
+      int size = N;
       int[][] map = new int[size][size];
 
       for (int i = 0; i < N; i++) {
+         int y_prev = 0;
          do {
             int x = i;
+
             int y = rand.nextInt(size);
             if (map[x][y] != 1) {
                map[x][y] = 1;
@@ -65,16 +67,17 @@ public class Driver {
       // generate points on map[x][y] == 1
       for (int x = 0; x < size; x++)
          for (int y = 0; y < size; y++)
-            if (map[x][y] == 1)
+            if (map[x][y] == 1) {
                points.add(new Point(x, y));
+            }
+
       // they are sorted in x and then in y
       // visualize the diagram: max size = 1250 x 1250
+      // generate a voronoi diagram
+      VoronoiDiagram voronoi = new VoronoiDiagram(50000, 50000, points);
       VoronoiGraphics vg = new VoronoiGraphics(size, size, points);
       Thread graphics = new Thread(vg);
       graphics.start();
-
-      // generate a voronoi diagram
-      VoronoiDiagram voronoi = new VoronoiDiagram(50000, 50000, points);
 
    }
 }
