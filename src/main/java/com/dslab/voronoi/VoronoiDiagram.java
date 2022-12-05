@@ -400,8 +400,22 @@ public class VoronoiDiagram {
          // if this bisector hasnt move from last one
          if (stitch.size() > 0 && Line.coordsEqual(bisector.getEnd(), stitch.get(stitch.size() - 1).getEnd())) {
             Line lastBisector = stitch.get(stitch.size() - 1);
-            bisector.removeSelf();
-            bisector = lastBisector;
+
+            if (cutFromLeft) {
+
+               trim(l, lastBisector, endPoint, 2, leftRemovedLines);
+            } else {
+
+               trim(l, lastBisector, endPoint, 1, rightRemovedLines);
+            }
+            // give the new line to both points that share it
+
+            p0.addStitch(bisector);
+
+            p1.addStitch(bisector);
+
+            // track the stitchings
+            // stitch.add(bisector);
 
          } else {
             if (cutFromLeft) {

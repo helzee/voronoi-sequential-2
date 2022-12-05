@@ -25,11 +25,12 @@ public class Driver {
       Vector<Point> points = new Vector<Point>();
 
       // space should be always 1250 x 1250
+      // int size = 3000;
       int size = N;
       int[][] map = new int[size][size];
 
       for (int i = 0; i < N; i++) {
-         int y_prev = 0;
+
          do {
             int x = i;
 
@@ -42,10 +43,19 @@ public class Driver {
       }
 
       // TODO: get this case working
-      // map[100][100] = 1;
-      // map[100][200] = 1;
-      // map[200][100] = 1;
-      // map[100][600] = 1;
+      // int sides = 10;
+      // double r = 400;
+      // double offset = 0.5;
+      // for (int i = 0; i < sides; i++) {
+      // map[(int) (r * Math.cos(i * ((2 * Math.PI) / sides) + offset))
+      // + 500][(int) (r * Math.sin(i * ((2 * Math.PI) / sides) + offset))
+      // + 500] = 1;
+      // }
+      // map[10][10] = 1;
+      // map[10][20] = 1;
+      // map[20][10] = 1;
+      // map[20][20] = 1;
+      // map[15][7] = 1;
       // map[200][100] = 1;
       // map[200][700] = 1;
       // map[300][100] = 1;
@@ -71,13 +81,15 @@ public class Driver {
                points.add(new Point(x, y));
             }
 
+      VoronoiGraphics vg = new VoronoiGraphics(size, size, points);
+      Thread graphics = new Thread(vg);
+      graphics.start();
       // they are sorted in x and then in y
       // visualize the diagram: max size = 1250 x 1250
       // generate a voronoi diagram
       VoronoiDiagram voronoi = new VoronoiDiagram(50000, 50000, points);
-      VoronoiGraphics vg = new VoronoiGraphics(size, size, points);
-      Thread graphics = new Thread(vg);
-      graphics.start();
+
+      System.out.println("COMPLETED");
 
    }
 }
