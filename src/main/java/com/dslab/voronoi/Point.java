@@ -41,6 +41,10 @@ public class Point {
          return null;
    }
 
+   public String print() {
+      return "" + getX() + ", " + getY();
+   }
+
    public void removeLine(Line l) {
       synchronized (this) {
          lines.remove(l);

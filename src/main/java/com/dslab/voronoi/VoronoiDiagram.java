@@ -397,43 +397,21 @@ public class VoronoiDiagram {
          // one. If so, we remove the last one from the stitch and use it again. (it will
          // get put back in the stitch later)
 
-         // if this bisector hasnt move from last one
-         if (stitch.size() > 0 && Line.coordsEqual(bisector.getEnd(), stitch.get(stitch.size() - 1).getEnd())) {
-            Line lastBisector = stitch.get(stitch.size() - 1);
+         if (cutFromLeft) {
 
-            if (cutFromLeft) {
-
-               trim(l, lastBisector, endPoint, 2, leftRemovedLines);
-            } else {
-
-               trim(l, lastBisector, endPoint, 1, rightRemovedLines);
-            }
-            // give the new line to both points that share it
-
-            p0.addStitch(bisector);
-
-            p1.addStitch(bisector);
-
-            // track the stitchings
-            // stitch.add(bisector);
-
+            trim(l, bisector, endPoint, 2, leftRemovedLines);
          } else {
-            if (cutFromLeft) {
 
-               trim(l, bisector, endPoint, 2, leftRemovedLines);
-            } else {
-
-               trim(l, bisector, endPoint, 1, rightRemovedLines);
-            }
-            // give the new line to both points that share it
-
-            p0.addStitch(bisector);
-
-            p1.addStitch(bisector);
-
-            // track the stitchings
-            stitch.add(bisector);
+            trim(l, bisector, endPoint, 1, rightRemovedLines);
          }
+         // give the new line to both points that share it
+
+         p0.addStitch(bisector);
+
+         p1.addStitch(bisector);
+
+         // track the stitchings
+         stitch.add(bisector);
 
          // 7. choose the next point from the same side that keeps the last voronoi edge
          // this point should be bisected by the line last intersected

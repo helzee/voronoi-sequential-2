@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.event.MouseInputAdapter;
+
 import java.util.Scanner;
 import java.util.Vector;
 import java.io.*;
@@ -100,6 +102,20 @@ public class VoronoiGraphics implements Runnable {
 
          }
       });
+
+      gWin.addMouseListener(new MouseAdapter() {
+         @Override
+         public void mouseClicked(MouseEvent e) {
+            System.out.println("mouse location: " + e.getX() + " " + e.getY());
+            for (com.dslab.voronoi.Point p : points) {
+               if (Math.abs(p.getX() - e.getX()) < 20 && Math.abs(p.getY() - e.getY()) < 20) {
+                  System.out.println(p.print());
+
+               }
+            }
+         }
+      });
+
    }
 
    public void MouseScrollTest() {
