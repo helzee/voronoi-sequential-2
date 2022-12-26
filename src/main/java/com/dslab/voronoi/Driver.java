@@ -43,9 +43,9 @@ public class Driver {
       }
 
       // TODO: get this case working
-      // int sides = 10;
-      // double r = 400;
-      // double offset = 0.5;
+      int sides = 8;
+      double r = 80;
+      double offset = 0.5;
       // for (int i = 0; i < sides; i++) {
       // map[(int) (r * Math.cos(i * ((2 * Math.PI) / sides) + offset))
       // + 500][(int) (r * Math.sin(i * ((2 * Math.PI) / sides) + offset))

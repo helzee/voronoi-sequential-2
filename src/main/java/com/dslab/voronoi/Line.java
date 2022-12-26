@@ -84,6 +84,11 @@ public class Line extends LineSegment {
 
    }
 
+   public boolean bisects(Point other) {
+      return pB == other || pA == other;
+
+   }
+
    @Override
    public boolean equals(Object other) {
       if (other.getClass() == this.getClass()) {
@@ -132,14 +137,14 @@ public class Line extends LineSegment {
 
    // this is used for HORIZONTAL lines ONLY
    public void horizontalTowardsRight() {
-      if (p0.getX() - p1.getX() > -0.01) {
+      if (p0.getX() > p1.getX()) {
          swapCoordinates();
       }
    }
 
    // this is used for HORIZONTAL lines ONLY
    public void horizontalTowardsLeft() {
-      if (p0.getX() - p1.getX() < 0.01) {
+      if (p0.getX() < p1.getX()) {
          swapCoordinates();
       }
    }

@@ -41,6 +41,15 @@ public class Point {
          return null;
    }
 
+   public boolean hasBisectorWith(Point other) {
+      for (Line l : lines) {
+         if (l.bisects(other)) {
+            return true;
+         }
+      }
+      return false;
+   }
+
    public String print() {
       return "" + getX() + ", " + getY();
    }
