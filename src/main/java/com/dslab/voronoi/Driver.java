@@ -87,7 +87,11 @@ public class Driver {
       // they are sorted in x and then in y
       // visualize the diagram: max size = 1250 x 1250
       // generate a voronoi diagram
-      VoronoiDiagram voronoi = new VoronoiDiagram(50000, 50000, points);
+      // VoronoiDiagram voronoi = new VoronoiDiagram(50000, 50000, points);
+
+      ConvexHull ch = new ConvexHull(points);
+
+      ch.draw();
 
       System.out.println("COMPLETED");
 

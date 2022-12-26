@@ -28,6 +28,40 @@ public class ConvexHull {
       return points;
    }
 
+   public ConvexHull(Vector<Point> points) {
+      this.points = divide(points, 0, points.size() - 1).getPoints();
+   }
+
+   private static ConvexHull divide(Vector<Point> points, int left, int right) {
+      int size = right - left + 1; // + 1 because converting last index to size
+
+      if (size > 2) {
+         int mid = left + size / 2;
+         ConvexHull leftConvexHull = divide(points, left, mid - 1);
+         ConvexHull rightConvexHull = divide(points, mid, right);
+         leftConvexHull.merge(rightConvexHull);
+         return leftConvexHull;
+         // if we comput convex hull to reduce time complexity, could do it after we get
+         // each ConvexHull. Take right convex hull of left ConvexHull and left CV of
+         // right
+         // ConvexHull. then send those to stitch
+      } else {
+         // base case
+         if (size == 2) {
+            // draw a line
+            Point p0 = points.elementAt(left);
+            Point p1 = points.elementAt(right);
+
+            return new ConvexHull(p0, p1);
+
+         }
+
+      }
+
+      return new ConvexHull(points.elementAt(left));
+
+   }
+
    public int size() {
       return points.size();
    }
@@ -56,6 +90,14 @@ public class ConvexHull {
 
    public Point getBottomPoint() {
       return points.get(0);
+   }
+
+   public void draw() {
+      Point prev = points.get(points.size() - 1);
+      for (Point p : points) {
+         prev.connect(p);
+         prev = p;
+      }
    }
 
    Point getLeftMostPoint() {

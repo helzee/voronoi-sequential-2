@@ -41,6 +41,12 @@ public class Point {
          return null;
    }
 
+   public void connect(Point p) {
+      Line line = new Line(this.getX(), this.getY(), p.getX(), p.getY());
+      this.insertLine(line);
+      p.insertLine(line);
+   }
+
    public boolean hasBisectorWith(Point other) {
       for (Line l : lines) {
          if (l.bisects(other)) {
