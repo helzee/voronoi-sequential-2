@@ -7,6 +7,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.SequenceFileOutputFormat;
 import org.apache.hadoop.mapred.lib.NLineInputFormat;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -21,28 +22,41 @@ import java.util.Vector;
 
 public class Driver {
    // for maximum performance an initial convex hull size that takes full advantage
-   // of the core and memory to prevent extra mapreduce iterations. Each iteration
-   // requires job setup and disk read/writes
-   private static final int INITIAL_CH_SIZE = 1024;
+   // of the heap space for a single threaded java program. Each job requires time
+   // to create and destroy it, so minimizing the amount of "recursive calls" we
+   // need to make (AKA jobs) saves us time. No point in creating a bunch of jobs
+   // for merging convex hulls of small sizes
+   private static int INITIAL_CH_SIZE = 1024;
 
+   // AKA number of jobs to complete the D and Q algorithm
    private static int RECURSIVE_DEPTH;
    private static Path input;
    private static Path output;
+   private static int SIZE;
+   private static int NUM_MACHINES = 1;
 
-   // args: [Npoints, input path, output path]
+   // 4 CPUs * 2 cores * 2 threads
+   private static final int NUM_THREADS = 16;
+
+   // args: [Npoints, input path, output path, Nmachines]
    public static void main(String[] args) throws Exception {
       // number of recursions (mapreduce jobs) is equal to log_base_2(total_points /
       // initial_size_of_CH) rounded up
-      RECURSIVE_DEPTH = (int) Math.ceil((Math.log(Integer.parseInt(args[0]) / INITIAL_CH_SIZE) / Math.log(2)));
+      SIZE = Integer.parseInt(args[0]);
+      NUM_MACHINES = Integer.parseInt(args[3]);
+      INITIAL_CH_SIZE = SIZE / (NUM_THREADS * NUM_MACHINES);
+      RECURSIVE_DEPTH = (int) Math.ceil((Math.log((double) SIZE / INITIAL_CH_SIZE) / Math.log(2)));
       input = new Path(args[1]);
       output = new Path(args[2]);
+
+      // INITIAL JOB ---
       Configuration config = new Configuration();
       Job job = Job.getInstance(config, "Convex Hull Init");
       job.setJarByClass(Driver.class);
 
       // output <k,v> = <CH#, {CH points}>
       job.setOutputKeyClass(IntWritable.class);
-      job.setOutputValueClass(ConvexHull.class);
+      job.setOutputValueClass(Point.class);
 
       job.setMapperClass(PointMapper.class);
       job.setReducerClass(PointReducer.class);
@@ -50,6 +64,8 @@ public class Driver {
       // intermediate output
       FileOutputFormat.setOutputPath(job, new Path(output.toString() + 0));
       job.waitForCompletion(true);
+
+      // RECURSIVE JOB ---
 
       // iterate jobs to replicate recursion for Divide and conquer
       for (int i = 0; i < RECURSIVE_DEPTH; i++) {
