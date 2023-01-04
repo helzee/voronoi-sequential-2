@@ -149,18 +149,6 @@ public class VoronoiGraphics implements Runnable {
          g.drawOval((int) (p.getX() * newScale) + origin.x, (int) (p.getY() * newScale) + origin.y,
                1, 1);
 
-         // draw this point's lines
-         synchronized (p) {
-
-            for (Line l : p.getLines()) {
-               g.setColor(lnColor);
-               g.drawLine((int) (l.getCoordinate(0).getX() * newScale) + origin.x,
-                     (int) (l.getCoordinate(0)
-                           .getY() * newScale) + origin.y,
-                     (int) (l.getCoordinate(1).getX() * newScale) + origin.x,
-                     (int) (l.getCoordinate(1).getY() * newScale) + origin.y);
-            }
-         }
       }
 
    }

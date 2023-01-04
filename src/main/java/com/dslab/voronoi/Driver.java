@@ -1,99 +1,175 @@
 package com.dslab.voronoi;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.lib.NLineInputFormat;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.thirdparty.com.google.common.util.concurrent.ClosingFuture.Combiner;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Vector;
-import java.util.Random;
 
 public class Driver {
-   public static void main(String[] args) {
-      int N = 0;
+   // for maximum performance an initial convex hull size that takes full advantage
+   // of the core and memory to prevent extra mapreduce iterations. Each iteration
+   // requires job setup and disk read/writes
+   private static final int INITIAL_CH_SIZE = 1024;
 
-      // validate args
-      if (args.length > 0) {
-         try {
-            N = Integer.parseInt(args[0]);
-         } catch (Exception e) {
+   private static int RECURSIVE_DEPTH;
+   private static Path input;
+   private static Path output;
+
+   // args: [Npoints, input path, output path]
+   public static void main(String[] args) throws Exception {
+      // number of recursions (mapreduce jobs) is equal to log_base_2(total_points /
+      // initial_size_of_CH) rounded up
+      RECURSIVE_DEPTH = (int) Math.ceil((Math.log(Integer.parseInt(args[0]) / INITIAL_CH_SIZE) / Math.log(2)));
+      input = new Path(args[1]);
+      output = new Path(args[2]);
+      Configuration config = new Configuration();
+      Job job = Job.getInstance(config, "Convex Hull Init");
+      job.setJarByClass(Driver.class);
+
+      // output <k,v> = <CH#, {CH points}>
+      job.setOutputKeyClass(IntWritable.class);
+      job.setOutputValueClass(ConvexHull.class);
+
+      job.setMapperClass(PointMapper.class);
+      job.setReducerClass(PointReducer.class);
+      FileInputFormat.addInputPath(job, input);
+      // intermediate output
+      FileOutputFormat.setOutputPath(job, new Path(output.toString() + 0));
+      job.waitForCompletion(true);
+
+      // iterate jobs to replicate recursion for Divide and conquer
+      for (int i = 0; i < RECURSIVE_DEPTH; i++) {
+         config = new Configuration();
+         job = Job.getInstance(config, "Convex Hull Recursion");
+         job.setJarByClass(Driver.class);
+         job.setMapperClass(ConvexHullMapper.class);
+         job.setReducerClass(ConvexHullReducer.class);
+
+         job.setOutputKeyClass(IntWritable.class);
+         job.setOutputValueClass(ConvexHull.class);
+
+         // intermediate output goes back and forth between a file ending in 0 to a file
+         // ending 1. These files have the same path as the output
+         FileInputFormat.addInputPath(job, new Path(output.toString() + (i % 2)));
+         if (i == RECURSIVE_DEPTH - 1) { // last iteration. write output to specified file
+            FileOutputFormat.setOutputPath(job, output);
+         } else {
+            FileOutputFormat.setOutputPath(job, new Path(output.toString() + ((i + 1) % 2)));
          }
+
+         job.waitForCompletion(true);
       }
-      // if (N <= 0 || N > 1000000) {
-      // System.err.println("usage: java Driver #points");
-      // System.err.println(" where 0< #points <= 1000000"); // up to 1M
-      // System.exit(-1);
-      // }
-
-      // generate N points
-      Random rand = new Random(10); // 10
-      Vector<Point> points = new Vector<Point>();
-
-      // space should be always 1250 x 1250
-      // int size = 3000;
-      int size = N;
-      int[][] map = new int[size][size];
-
-      for (int i = 0; i < N; i++) {
-
-         do {
-            int x = i;
-
-            int y = rand.nextInt(size);
-            if (map[x][y] != 1) {
-               map[x][y] = 1;
-               break;
-            }
-         } while (true);
-      }
-
-      // TODO: get this case working
-      int sides = 8;
-      double r = 80;
-      double offset = 0.5;
-      // for (int i = 0; i < sides; i++) {
-      // map[(int) (r * Math.cos(i * ((2 * Math.PI) / sides) + offset))
-      // + 500][(int) (r * Math.sin(i * ((2 * Math.PI) / sides) + offset))
-      // + 500] = 1;
-      // }
-      // map[10][10] = 1;
-      // map[10][20] = 1;
-      // map[20][10] = 1;
-      // map[20][20] = 1;
-      // map[15][7] = 1;
-      // map[200][100] = 1;
-      // map[200][700] = 1;
-      // map[300][100] = 1;
-      // map[400][200] = 1;
-      // map[150][150] = 1;
-
-      // map[100][800] = 1;
-      // map[100][802] = 1;
-      // map[200][200] = 1;
-      // map[800][200] = 1;
-      // map[800][300] = 1;
-      // map[800][400] = 1;
-      // map[800][500] = 1;
-      // map[900][100] = 1;
-      // map[700][100] = 1;
-      // map[800][100] = 1;
-      // map[100][100] = 1;
-      // map[300][200] = 1;
-      // generate points on map[x][y] == 1
-      for (int x = 0; x < size; x++)
-         for (int y = 0; y < size; y++)
-            if (map[x][y] == 1) {
-               points.add(new Point(x, y));
-            }
-
-      VoronoiGraphics vg = new VoronoiGraphics(size, size, points);
-      Thread graphics = new Thread(vg);
-      graphics.start();
-      // they are sorted in x and then in y
-      // visualize the diagram: max size = 1250 x 1250
-      // generate a voronoi diagram
-      // VoronoiDiagram voronoi = new VoronoiDiagram(50000, 50000, points);
-
-      ConvexHull ch = new ConvexHull(points);
-
-      ch.draw();
-
-      System.out.println("COMPLETED");
 
    }
+
+   // turn list of x,y values sorted by x value into list of points.
+   // keys (the group var) are a function of x value, where each key should have
+   // 1-3 points
+   public static class ConvexHullMapper extends Mapper<Object, Text, IntWritable, ConvexHull> {
+
+      private ConvexHull ch;
+      private IntWritable group;
+
+      @Override
+      public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+
+         // get point from input file line of coords
+         Scanner reader = new Scanner(value.toString());
+         ch = new ConvexHull(reader);
+
+         // group convex hulls into groups of 2 using key
+         group = new IntWritable((int) (ch.getXValue() / 2));
+         context.write(group, ch);
+
+      }
+   }
+
+   public static class ConvexHullReducer extends Reducer<IntWritable, ConvexHull, IntWritable, ConvexHull> {
+      private ConvexHull left;
+
+      // reduce all CH into one CH from left to right
+      @Override
+      public void reduce(IntWritable key, Iterable<ConvexHull> values, Context context)
+            throws IOException, InterruptedException {
+
+         // This should only reduce two convex hulls at a time, but it is written to
+         // allow for more
+         int counter = 0;
+         for (ConvexHull right : values) {
+            if (counter == 0) {
+               left = right;
+               counter++;
+               continue;
+            }
+            left = ConvexHull.merge(left, right);
+            counter++;
+         }
+
+         context.write(key, left);
+
+      }
+
+   }
+
+   // as part of the first job, we need to group a bunch of points into convex
+   // hulls using the initial CH size. This will save us many recursive steps and
+   // time spent tearing down and creatin jobs
+   public static class PointMapper extends Mapper<Object, Text, IntWritable, Point> {
+      private Point point;
+      private IntWritable group;
+
+      @Override
+      public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+
+         // get point from input file line of coords
+         Scanner reader = new Scanner(value.toString());
+         point = new Point(reader);
+
+         // group points into groups of a set size
+         group = new IntWritable((int) (point.getX() / INITIAL_CH_SIZE));
+         context.write(group, point);
+
+      }
+   }
+
+   // here we take a bunch of points with the same key and create a convex hull
+   // with the points.
+   // This is the first job, as we don't want to waste time setting up and tearing
+   // down jobs for creating a bunch of convex hulls of size 1 and 2. Afte this
+   // initial creation, we will use a job for each recursive level of the D and Q
+   // Convex Hull algorithm
+   public static class PointReducer extends Reducer<IntWritable, Point, IntWritable, ConvexHull> {
+      private ConvexHull whole;
+      private Vector<Point> points = new Vector<>();
+
+      // reduce all CH into one CH from left to right
+      @Override
+      public void reduce(IntWritable key, Iterable<Point> values, Context context)
+            throws IOException, InterruptedException {
+
+         for (Point p : values) {
+            points.add(p);
+         }
+         whole = new ConvexHull(points);
+
+         context.write(key, whole);
+
+      }
+
+   }
+
 }
