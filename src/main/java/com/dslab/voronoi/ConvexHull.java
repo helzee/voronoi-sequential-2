@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.Vector;
 
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapred.RecordWriter;
 
@@ -25,6 +26,10 @@ public class ConvexHull implements Writable {
       return points;
    }
 
+   private void setPoints(Vector<Point> points) {
+      this.points = points;
+   }
+
    public int getXValue() {
       return points.get(0).getX();
    }
@@ -41,12 +46,16 @@ public class ConvexHull implements Writable {
    public ConvexHull(Scanner input) {
       points = new Vector<>();
 
-      while (input.hasNext()) {
+      while (input.hasNextInt()) {
          points.add(new Point(input));
       }
+
    }
 
    public static ConvexHull divide(Vector<Point> points, int left, int right) {
+      if (points.isEmpty()) {
+         return new ConvexHull();
+      }
       int size = right - left + 1; // + 1 because converting last index to size
 
       if (size > 2) {
@@ -116,6 +125,16 @@ public class ConvexHull implements Writable {
       for (Point p : points) {
          p.write(out);
       }
+   }
+
+   public Text write() throws IOException {
+      Text text = new Text();
+      String ch = " ";
+      for (Point p : points) {
+         ch += p.toString() + " ";
+      }
+      text.set(ch);
+      return text;
    }
 
    public void readFields(DataInput in) throws IOException {
@@ -280,8 +299,8 @@ public class ConvexHull implements Writable {
          }
       }
 
-      ConvexHull res = new ConvexHull(newHull);
-
+      ConvexHull res = new ConvexHull();
+      res.setPoints(newHull);
       return res;
 
    }

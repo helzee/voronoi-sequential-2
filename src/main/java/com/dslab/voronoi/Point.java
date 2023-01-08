@@ -1,5 +1,6 @@
 package com.dslab.voronoi;
 
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -14,6 +15,14 @@ public class Point implements Writable {
    public Point(int i, int j) {
       x = i;
       y = j;
+   }
+
+   public String toString() {
+      return "" + x + " " + y;
+   }
+
+   public Text write() {
+      return new Text("" + x + " " + y + " ");
    }
 
    public Point() {
