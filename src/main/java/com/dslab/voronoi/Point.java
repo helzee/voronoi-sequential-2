@@ -7,7 +7,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Point implements Writable {
+public class Point implements Writable, Comparable {
 
    private int x;
    private int y;
@@ -18,7 +18,15 @@ public class Point implements Writable {
    }
 
    public String toString() {
-      return "" + x + " " + y;
+      return "" + x + " " + y + " ";
+   }
+
+   public int compareTo(Object other) {
+      if (other.getClass() != this.getClass()) {
+         return -1;
+      }
+      Point p2 = (Point) other;
+      return x - p2.getX();
    }
 
    public Text write() {

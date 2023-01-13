@@ -13,6 +13,8 @@ import org.apache.hadoop.io.SequenceFile.Reader;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.SequenceFileOutputFormat;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.mapred.lib.NLineInputFormat;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -41,7 +44,7 @@ public class Driver {
    // to create and destroy it, so minimizing the amount of "recursive calls" we
    // need to make (AKA jobs) saves us time. No point in creating a bunch of jobs
    // for merging convex hulls of small sizes
-   private static int INITIAL_CH_SIZE = 1024;
+   private static int INITIAL_CH_SIZE = 100;
 
    // AKA number of jobs to complete the D and Q algorithm
    private static int RECURSIVE_DEPTH;
@@ -76,9 +79,10 @@ public class Driver {
       // output <k,v> = <CH#, {CH points}>
       job.setOutputKeyClass(IntWritable.class);
       job.setOutputValueClass(Text.class);
-      // job.setCombinerClass(PointReducer.class);
+      job.setCombinerClass(PointReducer.class);
       job.setMapperClass(PointMapper.class);
       job.setReducerClass(PointReducer.class);
+
       FileInputFormat.addInputPath(job, input);
       // intermediate output
       FileOutputFormat.setOutputPath(job, new Path(output.toString() + 0));
@@ -93,7 +97,7 @@ public class Driver {
          job.setJarByClass(Driver.class);
          job.setMapperClass(ConvexHullMapper.class);
          job.setReducerClass(ConvexHullReducer.class);
-         // job.setCombinerClass(ConvexHullReducer.class);
+         job.setCombinerClass(ConvexHullReducer.class);
          job.setOutputKeyClass(IntWritable.class);
          job.setOutputValueClass(Text.class);
 
@@ -131,11 +135,10 @@ public class Driver {
    // 1-3 points
    public static class ConvexHullMapper extends Mapper<Object, Text, IntWritable, Text> {
 
-      private ConvexHull ch;
-      private IntWritable group;
-
       @Override
       public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+         ConvexHull ch;
+         IntWritable group;
 
          // get point from input file line of coords
          Scanner reader = new Scanner(value.toString());
@@ -151,12 +154,12 @@ public class Driver {
    }
 
    public static class ConvexHullReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
-      private ConvexHull left;
 
       // reduce all CH into one CH from left to right
       @Override
       public void reduce(IntWritable key, Iterable<Text> values, Context context)
             throws IOException, InterruptedException {
+         ConvexHull left = null;
 
          // This should only reduce two convex hulls at a time, but it is written to
          // allow for more
@@ -173,8 +176,9 @@ public class Driver {
             left = ConvexHull.merge(left, new ConvexHull(input));
             counter++;
          }
-
-         context.write(key, left.write());
+         if (left != null) {
+            context.write(key, left.write());
+         }
 
       }
 
@@ -184,11 +188,11 @@ public class Driver {
    // hulls using the initial CH size. This will save us many recursive steps and
    // time spent tearing down and creatin jobs
    public static class PointMapper extends Mapper<Object, Text, IntWritable, Text> {
-      private Point point;
-      private IntWritable group;
 
       @Override
       public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+         Point point;
+         IntWritable group;
 
          // get point from input file line of coords
          Scanner reader = new Scanner(value.toString());
@@ -209,17 +213,23 @@ public class Driver {
    // initial creation, we will use a job for each recursive level of the D and Q
    // Convex Hull algorithm
    public static class PointReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
-      private ConvexHull whole;
-      private Vector<Point> points = new Vector<>();
 
       // reduce all CH into one CH from left to right
       @Override
       public void reduce(IntWritable key, Iterable<Text> values, Context context)
             throws IOException, InterruptedException {
+         ConvexHull whole;
+         Vector<Point> points = new Vector<>();
 
          for (Text p : values) {
-            points.add(new Point(new Scanner(p.toString())));
+            Scanner in = new Scanner(p.toString());
+            while (in.hasNextInt()) {
+               points.add(new Point(in));
+            }
+
          }
+         // sort points by x value
+         Collections.sort(points);
          whole = new ConvexHull(points);
 
          context.write(key, whole.write());
