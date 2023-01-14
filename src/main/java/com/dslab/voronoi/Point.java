@@ -1,13 +1,16 @@
 package com.dslab.voronoi;
 
+import org.apache.commons.text.StringTokenizer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableComparable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Point implements Writable, Comparable {
+public class Point implements WritableComparable<Point> {
 
    private int x;
    private int y;
@@ -17,16 +20,20 @@ public class Point implements Writable, Comparable {
       y = j;
    }
 
-   public String toString() {
-      return "" + x + " " + y + " ";
+   public Point(StringTokenizer itr) {
+      x = Integer.parseInt(itr.nextToken());
+      y = Integer.parseInt(itr.nextToken());
    }
 
-   public int compareTo(Object other) {
-      if (other.getClass() != this.getClass()) {
-         return -1;
-      }
-      Point p2 = (Point) other;
-      return x - p2.getX();
+   @Override
+   public String toString() {
+      return "" + x + ", " + y;
+   }
+
+   @Override
+   public int compareTo(Point other) {
+
+      return this.x - other.getX();
    }
 
    public Text write() {

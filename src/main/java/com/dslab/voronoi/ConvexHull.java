@@ -3,8 +3,12 @@ package com.dslab.voronoi;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
+
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
@@ -24,6 +28,14 @@ public class ConvexHull implements Writable {
 
    public Vector<Point> getPoints() {
       return points;
+   }
+
+   public ConvexHull(ConvexHull ch) {
+      this.points = new Vector<>();
+      for (Point p : ch.getPoints()) {
+         // shallow copy of each point currently
+         points.add(p);
+      }
    }
 
    private void setPoints(Vector<Point> points) {
@@ -119,12 +131,20 @@ public class ConvexHull implements Writable {
    }
 
    // serial form of CH: [size, point1, point2, ... , pointN]
-
+   @Override
    public void write(DataOutput out) throws IOException {
       out.writeInt(points.size());
       for (Point p : points) {
          p.write(out);
       }
+   }
+
+   public String toString() {
+      String res = "";
+      for (Point p : points) {
+         res += p.toString() + "; ";
+      }
+      return res;
    }
 
    public Text write() throws IOException {
@@ -137,11 +157,15 @@ public class ConvexHull implements Writable {
       return text;
    }
 
+   @Override
    public void readFields(DataInput in) throws IOException {
+      // reset this object
+      this.points = new Vector<>();
       int size = in.readInt();
       for (int i = 0; i < size; i++) {
          points.add(Point.read(in));
       }
+
    }
 
    public static ConvexHull read(DataInput in) throws IOException {
