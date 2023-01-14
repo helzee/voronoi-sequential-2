@@ -12,6 +12,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapred.RecordWriter;
 
 /**
@@ -19,7 +20,7 @@ import org.apache.hadoop.mapred.RecordWriter;
  * It can only be constructed from 1 or 2 points. Any more points need to be
  * added through merges
  */
-public class ConvexHull implements Writable {
+public class ConvexHull implements WritableComparable<ConvexHull> {
 
    // the list iterates counterclockwise through the
    // hull with the last point in the list being the next point clockwise from the
@@ -326,6 +327,12 @@ public class ConvexHull implements Writable {
       ConvexHull res = new ConvexHull();
       res.setPoints(newHull);
       return res;
+
+   }
+
+   @Override
+   public int compareTo(ConvexHull other) {
+      return this.getStartPoint().getX() - other.getStartPoint().getX();
 
    }
 

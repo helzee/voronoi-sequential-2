@@ -1,41 +1,34 @@
 package com.dslab.voronoi;
 
-import org.apache.commons.text.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
+
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.FileSystem;
+
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.SequenceFile;
+
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.SequenceFile.Reader;
-import org.apache.hadoop.mapred.OutputFormat;
-import org.apache.hadoop.mapred.Reporter;
 
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileAsTextRecordReader;
+
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.thirdparty.com.google.common.io.PatternFilenameFilter;
+
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
+
 import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
+
 import java.util.Scanner;
-import java.util.SortedSet;
-import java.util.TreeSet;
+
 import java.util.Vector;
 import java.util.regex.Pattern;
 import java.io.File;
@@ -56,7 +49,7 @@ public class Driver {
    private static int NUM_MACHINES = 1;
 
    // 4 CPUs * 2 cores * 2 threads
-   private static final int NUM_THREADS = 1;
+   private static final int NUM_THREADS = 8;
 
    // args: [Npoints, input path, output path, Nmachines]
    public static void main(String[] args) throws Exception {
@@ -92,8 +85,8 @@ public class Driver {
       SequenceFileOutputFormat.setOutputPath(job, new Path(output.toString() + 0));
 
       job.setInputFormatClass(TextInputFormat.class);
-      // job.setOutputFormatClass(SequenceFileOutputFormat.class);
-      job.setOutputFormatClass(TextOutputFormat.class);
+      job.setOutputFormatClass(SequenceFileOutputFormat.class);
+      // job.setOutputFormatClass(TextOutputFormat.class);
       job.waitForCompletion(true);
 
       // check output
@@ -210,21 +203,18 @@ public class Driver {
             throws IOException, InterruptedException {
          ConvexHull left = null;
 
-         // This should only reduce two convex hulls at a time, but it is written to
-         // allow for more
-         int counter = 0;
+         Vector<ConvexHull> hulls = new Vector<>();
+
          for (ConvexHull ch : values) {
+            hulls.add(new ConvexHull(ch));
 
-            if (counter == 0) {
-
-               left = ch;
-               counter++;
-               continue;
-            }
-            left = ConvexHull.merge(left, ch);
-            counter++;
          }
-         if (left != null) {
+         if (hulls.size() == 1) {
+            context.write(key, hulls.get(0));
+         } else {
+            // need to merge from left to right
+            Collections.sort(hulls);
+            left = ConvexHull.merge(hulls.get(0), hulls.get(1));
             context.write(key, left);
          }
 
