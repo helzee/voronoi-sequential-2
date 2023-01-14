@@ -212,7 +212,8 @@ public class Driver {
          if (hulls.size() == 1) {
             context.write(key, hulls.get(0));
          } else {
-            // need to merge from left to right
+            // need to merge from left to right. This is constant time sort cuz there should
+            // be just 2 convex hulls and we only check the first point of each hull
             Collections.sort(hulls);
             left = ConvexHull.merge(hulls.get(0), hulls.get(1));
             context.write(key, left);
