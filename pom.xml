@@ -38,6 +38,14 @@
         <artifactId>spark-core_2.12</artifactId>
         <version>3.3.1</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql -->
+<dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-sql_2.13</artifactId>
+    <version>3.3.1</version>
+    <scope>provided</scope>
+</dependency>
+
 
   </dependencies>
 
@@ -49,16 +57,16 @@
         <version>3.0.0-M5</version>
       </plugin>
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-jar-plugin</artifactId>
-	<version>2.4</version>
-	<configuration>
-	  <archive>
-	    <manifest>
-		<mainClass>com.dslab.voronoi.Driver</mainClass>
-	    </manifest>
-	  </archive>
-	</configuration>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-jar-plugin</artifactId>
+      <version>2.4</version>
+      <configuration>
+        <archive>
+          <manifest>
+            <mainClass>com.dslab.voronoi.Driver</mainClass>
+          </manifest>
+        </archive>
+      </configuration>
     </plugin>
     </plugins>
   </build>

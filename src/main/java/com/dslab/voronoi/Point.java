@@ -8,9 +8,10 @@ import org.apache.hadoop.io.WritableComparable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Scanner;
 
-public class Point implements WritableComparable<Point> {
+public class Point implements Serializable, Comparable<Point> {
 
    private int x;
    private int y;
@@ -56,17 +57,6 @@ public class Point implements WritableComparable<Point> {
    public Point(Scanner input) {
       x = input.nextInt();
       y = input.nextInt();
-   }
-
-   public void readFields(DataInput in) throws IOException {
-      x = in.readInt();
-      y = in.readInt();
-   }
-
-   public static Point read(DataInput in) throws IOException {
-      Point p = new Point();
-      p.readFields(in);
-      return p;
    }
 
    public String print() {

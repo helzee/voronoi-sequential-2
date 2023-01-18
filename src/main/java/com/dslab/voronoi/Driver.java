@@ -2,9 +2,23 @@ package com.dslab.voronoi;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.SparkSession;
+
+import java.util.Iterator;
 
 import java.io.File;
+
+import org.apache.spark.api.java.function.MapPartitionsFunction;
+import org.apache.spark.api.java.function.MapFunction;
+
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.Encoder;
+import org.apache.spark.sql.Encoders;
 
 public class Driver {
    // for maximum performance an initial convex hull size that takes full advantage
@@ -35,8 +49,25 @@ public class Driver {
       // create directory for intermediate files and output
       String dirPath = "/" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS"));
       new File(args[2] + dirPath).mkdirs();
-      input = new Path(args[1]);
-      output = new Path(args[2] + dirPath + "/output");
+      String input = args[1];
+      String output = args[2] + dirPath + "/output";
+      SparkSession spark = SparkSession.builder().appName("Convex Hull").getOrCreate();
+      Encoder<Point> pointEncoder = Encoders.bean(Point.class);
+      Encoder<ConvexHull> convexHullEncoder = Encoders.bean(ConvexHull.class);
+      Dataset<Point> points = spark.read().textFile(input).as(pointEncoder);
+      Dataset<ConvexHull> hulls = points.mapPartitions(new MapPartitionsFunction<Point, ConvexHull>() {
+         @Override
+         public Iterator<ConvexHull> call(Iterator<Point> pointItr) throws Exception {
+            Vector<Point> allPoints = new Vector<>();
+            while (pointItr.hasNext()) {
+               Point p = pointItr.next();
+               allPoints.add(p);
+            }
+            List<ConvexHull> convexHull = new ArrayList<ConvexHull>(1);
+            convexHull.add(new ConvexHull(allPoints));
+            return convexHull.iterator();
+         }
+      }, convexHullEncoder);
 
    }
 
