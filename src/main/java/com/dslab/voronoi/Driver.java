@@ -90,15 +90,15 @@ public class Driver {
       job.waitForCompletion(true);
 
       // check output
-      Scanner check = new Scanner(new File(output.toString() + "0/part-r-00000"));
-      int x = 0;
-      while (check.hasNextLine()) {
-         Scanner line = new Scanner(check.nextLine());
-         line.useDelimiter(Pattern.compile("[\\s,;]+"));
-         line.nextInt();
-         ConvexHullViewer.createImage(SIZE, line, new Path(output.toString() +
-               "_StartingImage" + x + ".png"));
-      }
+      // Scanner check = new Scanner(new File(output.toString() + "0/part-r-00000"));
+      // int x = 0;
+      // while (check.hasNextLine()) {
+      // Scanner line = new Scanner(check.nextLine());
+      // line.useDelimiter(Pattern.compile("[\\s,;]+"));
+      // line.nextInt();
+      // ConvexHullViewer.createImage(SIZE, line, new Path(output.toString() +
+      // "_StartingImage" + x + ".png"));
+      // }
 
       // RECURSIVE JOB ---
       int numReduceTasks = INITIAL_REDUCE_TASKS;
@@ -119,7 +119,8 @@ public class Driver {
          // intermediate output goes back and forth between a file ending in 0 to a file
          // ending 1. These files have the same path as the output
          for (int j = 0; j < numReduceTasks; j++) {
-            SequenceFileInputFormat.addInputPath(job, new Path(output.toString() + i + "/part-r-0000" + j));
+            SequenceFileInputFormat.addInputPath(job,
+                  new Path(output.toString() + i + "/part-r-" + String.format("%05d", j)));
          }
          job.setInputFormatClass(SequenceFileInputFormat.class);
 
@@ -241,7 +242,7 @@ public class Driver {
 
          // get point from input file line of coords
          Scanner reader = new Scanner(value.toString());
-         System.out.println(value.toString());
+         // System.out.println(value.toString());
 
          Point p = new Point();
 
@@ -282,7 +283,8 @@ public class Driver {
 
          }
 
-         System.out.println("********NUMBER OF CONVEX HULLS IN FIRST REDUCTION: " + count);
+         // System.out.println("********NUMBER OF CONVEX HULLS IN FIRST REDUCTION: " +
+         // count);
 
          Vector<Point> points = new Vector<>();
 
@@ -291,7 +293,7 @@ public class Driver {
          }
          // sort points by x value
          Collections.sort(points);
-         System.out.println(points);
+         // System.out.println(points);
 
          whole = new ConvexHull(points);
 
