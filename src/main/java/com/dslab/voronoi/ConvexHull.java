@@ -23,16 +23,16 @@ public class ConvexHull implements Comparable<ConvexHull>, Serializable {
       return points;
    }
 
+   public void setPoints(Vector<Point> points) {
+      this.points = points;
+   }
+
    public ConvexHull(ConvexHull ch) {
       this.points = new Vector<>();
       for (Point p : ch.getPoints()) {
          // shallow copy of each point currently
          points.add(p);
       }
-   }
-
-   private void setPoints(Vector<Point> points) {
-      this.points = points;
    }
 
    public int getXValue() {
@@ -44,15 +44,6 @@ public class ConvexHull implements Comparable<ConvexHull>, Serializable {
          this.points = divide(points, 0, points.size() - 1).getPoints();
       } else {
          this.points = points;
-      }
-
-   }
-
-   public ConvexHull(Scanner input) {
-      points = new Vector<>();
-
-      while (input.hasNextInt()) {
-         points.add(new Point(input));
       }
 
    }
