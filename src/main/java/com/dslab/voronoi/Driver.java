@@ -95,6 +95,7 @@ public class Driver {
 
       // reduce in pairs until single convex hull exists
       while (numPartitions > 1) {
+
          numPartitions = (int) Math.ceil(numPartitions / 2);
          // combine neighboring partitions
          Dataset<ConvexHull> hullPairs = hulls.coalesce(numPartitions);
